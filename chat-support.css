@@ -1,0 +1,138 @@
+/* CHAT SUPPORT PAGE STYLES START */
+.account-content {
+    min-width: 0;
+}
+
+/* HEADER AND CLEAR BUTTON */
+.chat-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.clear-chat-btn {
+    background: none;
+    border: 1px solid #d9534f;
+    color: #d9534f;
+    padding: 6px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s;
+    flex-shrink: 0;
+}
+
+.clear-chat-btn i {
+    padding-top: 4px;
+}
+
+.clear-chat-btn:hover {
+    background-color: #d9534f;
+    color: var(--bg-color);
+}
+
+.page-chat-container {
+    background: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 557px;
+    overflow: hidden;
+    margin-top: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.page-transcript-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #f9f9f9;
+}
+
+.page-transcript-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.page-transcript-box::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 10px;
+}
+
+.page-chat-input-area {
+    padding: 15px;
+    background: #fff;
+    border-top: 1px solid #eaeaea;
+    display: flex;
+    gap: 10px;
+}
+
+.page-chat-input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.page-chat-input:focus {
+    border-color: var(--brand-color);
+}
+
+.page-chat-btn {
+    background: var(--brand-color);
+    color: var(--bg-color);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.page-chat-btn i {
+    padding-top: 5px;
+    font-size: 18px;
+}
+
+.page-chat-btn:hover {
+    background: var(--darkgray-text);
+}
+
+.page-msg-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.page-msg-meta {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 4px;
+}
+
+.page-msg-bubble {
+    padding: 10px 15px;
+    border-radius: 12px;
+    max-width: 75%;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    min-width: 0;
+}
+
+/* CHAT SUPPORT PAGE STYLES END */

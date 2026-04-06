@@ -1,0 +1,177 @@
+/* Layout fixed height just like admin-orders */
+.admin-content {
+    height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+/* PDF Button Styling */
+.pdf-btn {
+    background: var(--brand-color);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    transition: 0.2s;
+}
+
+.pdf-btn:hover {
+    opacity: 0.8;
+}
+
+/* Big Chart Card taking the rest of the space */
+.big-chart-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 250px;
+    margin-top: 10px;
+    padding: 25px 30px;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.chart-header h3 {
+    font-size: 16px;
+    color: var(--darkgray-text);
+    margin: 0;
+}
+
+.chart-legend {
+    display: flex;
+    gap: 15px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--gray-text);
+    font-weight: 600;
+}
+
+.box {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+/* --- BRAND COLORS --- */
+.rev-box { background-color: var(--brand-color); }
+.ord-box { background-color: #E6A57A; } /* A light, soft shade of your brand color */
+
+/* The Double Bar Chart Area */
+.report-chart-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-grid {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 0;
+}
+
+.chart-grid-line {
+    border-top: 1px dashed #eaeaea;
+    width: 100%;
+    height: 0;
+}
+
+.chart-bars-area {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    z-index: 1;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #eaeaea;
+}
+
+.month-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    width: 70px;
+}
+
+.bar-group {
+    display: flex;
+    gap: 5px;
+    height: 100%;
+    align-items: flex-end;
+    width: 80px; /* Made the bars wider */
+}
+
+.bar {
+    flex: 1;
+    border-radius: 4px 4px 0 0;
+    min-height: 5px; /* Taller base height so zero-months are easy to hover */
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.bar.rev { background-color: var(--brand-color); }
+.bar.ord { background-color: #E6A57A; } /* Light brand color */
+
+.bar:hover {
+    background-color: var(--darkgray-text);
+}
+
+.month-label {
+    font-size: 12px;
+    color: var(--gray-text);
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+/* --- HOVER TOOLTIP STYLING (Like your image) --- */
+#report-tooltip {
+    position: fixed;
+    background: #333333;
+    color: #ffffff;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+    z-index: 9999;
+    transform: translate(-50%, -100%);
+    margin-top: -10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    white-space: nowrap;
+}
+
+/* The little triangle arrow pointing down */
+#report-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #333333 transparent transparent transparent;
+}

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="account.css">
+    <link rel="stylesheet" href="address.css">
+    <link rel="stylesheet" href="payment-method.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="account-page-container reveal">
+        <div class="breadcrumb-section" style="max-width: var(--max-wide);">
+            <a href="homepage.html">Home</a> / <span class="current-page">Payment
+                Methods</span>
+        </div>
+
+        <div class="account-dashboard-wrapper">
+            <aside class="account-sidebar">
+                <div class="account-sidebar-profile">
+                    <div class="account-img-container">
+                        <div class="account-profile-initials" id="sidebar-initials"></div>
+                        <img id="sidebar-img" src="" style="display:none;" alt="Profile Picture">
+                    </div>
+                    <h3 id="sidebar-name">User Name</h3>
+                    <p id="sidebar-email">Email Address</p>
+                </div>
+                <nav class="account-sidebar-nav">
+                    <a href="account.html"><i class="fi fi-rr-settings"></i> Account Settings</a>
+                    <a href="address.html"><i class="fi fi-rr-map-marker"></i> Address Book</a>
+                    <a href="payment-method.html" class="active"><i class="fi fi-rr-credit-card"></i> Payment Methods</a>
+                    <a href="order-history.html"><i class="fi fi-rr-box"></i> Order History</a>
+                    <a href="notification.html"><i class="fi fi-rr-bell"></i> Notifications</a>
+                    <a href="chat-support.html"><i class="fi fi-rr-headset"></i> Chat Support</a>
+                    <button onclick="logoutUser()" class="account-sidebar-logout"><i
+                            class="fi fi-rs-sign-out-alt"></i>Logout</button>
+                </nav>
+            </aside>
+
+            <main class="account-content">
+                <div class="address-header-row">
+                    <h2>Payment Methods</h2>
+                    <button class="add-address-btn" onclick="openAccountModal('payment-modal')">
+                        <i class="fi fi-rr-plus"></i> Add New Payment
+                    </button>
+                </div>
+                <p class="account-subtitle">Manage your saved payment options for fast and secure checkout.</p>
+
+                <div id="payment-list-container">
+                </div>
+
+                <div id="empty-payment-state" class="empty-state" style="display: none;">
+                    <i class="fi fi-rr-wallet wallet-icon"></i>
+                    <h3>NO PAYMENT METHODS SAVED</h3>
+                    <p>Add a debit/credit card, GCash, or PayPal account.</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <dialog id="payment-modal" class="account-dialog">
+        <div class="dialog-header">
+            <h3>Add Payment Method</h3>
+            <button type="button" class="dialog-close" onclick="closeAccountModal('payment-modal')">&times;</button>
+        </div>
+        <form id="form-new-payment" class="dialog-form">
+
+            <div class="account-input-group">
+                <label style="margin-bottom: 10px; display:block;">Select Payment Type</label>
+                <div class="pm-type-options">
+                    <label class="pm-radio-label">
+                        <input type="radio" name="pm-type" value="Card" checked>
+                        <span class="pm-radio-btn"><i class="fi fi-rr-credit-card"></i> Card</span>
+                    </label>
+                    <label class="pm-radio-label">
+                        <input type="radio" name="pm-type" value="GCash">
+                        <span class="pm-radio-btn"><i class="fi fi-rr-smartphone"></i> GCash</span>
+                    </label>
+                    <label class="pm-radio-label">
+                        <input type="radio" name="pm-type" value="PayPal">
+                        <span class="pm-radio-btn"><i class="fi fi-brands-paypal"></i> PayPal</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="fields-card" class="pm-dynamic-fields active-fields">
+                <div class="account-input-group" style="margin-top: 15px;">
+                    <label>Name on Card</label>
+                    <input type="text" id="pm-card-name" class="account-input-field" placeholder="Juan dela Cruz">
+                </div>
+                <div class="account-input-group" style="margin-top: 15px;">
+                    <label>Card Number</label>
+                    <input type="text" id="pm-card-number" class="account-input-field" placeholder="0000 0000 0000 0000"
+                        maxlength="19">
+                    <p id="pm-card-number-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
+                </div>
+                <div class="account-form-row" style="margin-top: 15px;">
+                    <div class="account-input-group">
+                        <label>Expiry Date</label>
+                        <input type="text" id="pm-card-exp" class="account-input-field" placeholder="MM/YY"
+                            maxlength="5">
+                        <p id="pm-card-exp-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
+                    </div>
+                    <div class="account-input-group">
+                        <label>CVV/CVC</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="pm-card-cvv" class="account-input-field" placeholder="123"
+                                maxlength="4">
+                        </div>
+                        <p id="pm-card-cvv-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="fields-gcash" class="pm-dynamic-fields hidden-fields">
+                <div class="account-input-group" style="margin-top: 15px;">
+                    <label>GCash Registered Name</label>
+                    <input type="text" id="pm-gcash-name" class="account-input-field" placeholder="Juan dela Cruz">
+                </div>
+                <div class="account-input-group" style="margin-top: 15px;">
+                    <label>GCash Mobile Number</label>
+                    <div class="phone-input-wrapper">
+                        <span class="phone-prefix">+63 9</span>
+                        <input type="tel" id="pm-gcash-phone" class="account-input-field" placeholder="00 000 0000">
+                    </div>
+                    <p id="pm-gcash-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
+                </div>
+            </div>
+
+            <div id="fields-paypal" class="pm-dynamic-fields hidden-fields">
+                <div class="account-input-group" style="margin-top: 15px;">
+                    <label>PayPal Email Address</label>
+                    <input type="email" id="pm-paypal-email" class="account-input-field" placeholder="juan@example.com">
+                </div>
+            </div>
+
+            <button type="submit" class="account-save-btn" style="margin-top: 25px;">Save Payment Method</button>
+        </form>
+    </dialog>
+
+    <dialog id="delete-payment-modal" class="account-dialog confirm-dialog">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon">
+                <i class="fi fi-rs-trash"></i>
+            </div>
+            <h3>Delete Payment Method?</h3>
+            <p>Are you sure you want to remove this payment method?</p>
+            <div class="confirm-actions">
+                <button type="button" class="btn-cancel" onclick="closeDeletePaymentModal()">CANCEL</button>
+                <button type="button" class="btn-confirm" onclick="executeDeletePayment()">DELETE</button>
+            </div>
+        </div>
+    </dialog>
+
+    <div id="footer-container"></div>
+
+    <script src="global.js"></script>
+    <script src="account.js"></script>
+    <script src="payment-method.js"></script>
+</body>
+
+</html>

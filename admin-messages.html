@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <link rel="stylesheet" href="admin-orders.css">
+    <link rel="stylesheet" href="admin-messages.css">
+
+    <script>
+        fetch('Database/check-admin.php')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+
+                    window.location.replace("login.html");
+                }
+            })
+            .catch(error => {
+
+                window.location.replace("login.html");
+            });
+    </script>
+</head>
+
+<body>
+    <header class="admin-navbar-section">
+        <div class="admin-nav-logo">
+            <a href="admin-dashboard.html"><img src="Brand Image/pace logo orange.png" alt="PACE Logo"
+                    style="height: 35px; object-fit: contain; padding-top: 3px;"></a>
+        </div>
+        <div class="admin-nav-search">
+            <i class="fi fi-rr-search"></i>
+            <input type="text" placeholder="Search orders, products, or users...">
+        </div>
+        <div class="admin-nav-profile">
+            <div class="admin-user-popup-container">
+                <button class="admin-popup-btn" onclick="toggleAdminPopup()"><i class="fi fi-rs-user"></i></button>
+                <div class="admin-action-card" id="admin-popup-menu">
+                    <div class="admin-card-header">
+                        <div class="admin-popup-initials" id="popup-initials">AD</div>
+                        <div class="admin-profile-text">
+                            <h4 id="popup-admin-name">Admin</h4>
+                            <p>System Administrator</p>
+                        </div>
+                    </div>
+                    <div class="admin-account-links">
+                        <a href="admin-dashboard.html"><i class="fi fi-rr-apps"></i> Dashboard</a>
+                        <a href="admin-orders.html"><i class="fi fi-rr-shopping-cart"></i> Orders</a>
+                        <a href="admin-products.html"><i class="fi fi-rr-box-alt"></i> Products</a>
+                        <a href="admin-users.html"><i class="fi fi-rr-users"></i> Users</a>
+                        <a href="admin-messages.html"><i class="fi fi-rr-envelope"></i> Messages</a>
+                        <a href="admin-reports.html"><i class="fi fi-rr-document"></i> Reports</a>
+                    </div>
+                    <div class="admin-card-logout">
+                        <button onclick="logoutUser()" class="admin-logout-btn"><i class="fi fi-rs-sign-out-alt"></i>
+                            Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-page-container reveal">
+        <div class="admin-dashboard-wrapper">
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar-profile">
+                    <div class="admin-img-container">
+                        <div class="admin-profile-initials" id="sidebar-initials">AD</div>
+                    </div>
+                    <h3 id="admin-name-display">Admin Name</h3>
+                    <p>System Administrator</p>
+                </div>
+                <nav class="admin-sidebar-nav">
+                    <a href="admin-dashboard.html"><i class="fi fi-rr-apps"></i> Dashboard</a>
+                    <a href="admin-orders.html"><i class="fi fi-rr-shopping-cart"></i> Orders</a>
+                    <a href="admin-products.html"><i class="fi fi-rr-box-alt"></i> Products</a>
+                    <a href="admin-users.html"><i class="fi fi-rr-users"></i> Users</a>
+                    <a href="admin-messages.html" class="active"><i class="fi fi-rr-envelope"></i> Messages</a>
+                    <a href="admin-reports.html"><i class="fi fi-rr-document"></i> Reports</a>
+                    <a href="#" onclick="logoutUser()" class="logout-link"><i class="fi fi-rs-sign-out-alt"></i>
+                        Logout</a>
+                </nav>
+            </aside>
+
+            <main class="admin-content">
+                <div class="content-header">
+                    <h2><span style="color: var(--brand-color); font-size: 26px;">PACE</span> Support</h2>
+                    <p>Handle direct communications and resolve user issues.</p>
+                </div>
+
+                <div class="messenger-wrapper">
+                    <div class="contacts-sidebar">
+                        <div class="contacts-search">
+                            <i class="fi fi-rr-search"></i>
+                            <input type="text" id="contact-search-input" placeholder="Search customer...">
+                        </div>
+                        <div class="contacts-list" id="contacts-list-container">
+                        </div>
+                    </div>
+
+                    <div class="chat-window">
+                        <div id="chat-blank-state" class="chat-blank-state">
+                            <i class="fi fi-rr-envelope-open"
+                                style="font-size: 50px; color: #ddd; margin-bottom: 10px;"></i>
+                            <p>Select a customer to start messaging.</p>
+                        </div>
+
+                        <div id="chat-active-state" class="chat-active-state" style="display: none;">
+                            <div class="chat-header">
+                                <div class="chat-header-user" id="chat-header-info">
+                                </div>
+                            </div>
+
+                            <div class="chat-messages-area" id="chat-messages-area">
+                            </div>
+
+                            <div class="chat-input-area">
+                                <input type="text" id="admin-chat-input" placeholder="Type your reply here..."
+                                    onkeypress="handleAdminChatEnter(event)">
+                                <button onclick="sendAdminMessage()"><i class="fi fi-rr-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="global.js"></script>
+    <script src="admin-dashboard.js"></script>
+    <script src="admin-messages.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="cart.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="cart-page-container reveal">
+        <div class="breadcrumb-section">
+            <a href="homepage.html">Home</a> / <span class="current-page">Shopping Cart</span>
+        </div>
+
+        <div class="product-header-wrapper">
+            <div class="product-header">
+                <h1>Shopping Cart <span id="cart-item-count">(0)</span></h1>
+            </div>
+        </div>
+
+        <div id="cart-empty" class="empty-state hidden">
+            <i class="fi fi-rr-shopping-cart" style="font-size: 70px; color: var(--brand-color);"></i>
+            <h2>YOUR CART IS EMPTY</h2>
+            <p>When you add products to your cart, they will appear here.</p>
+            <a href="homepage.html" class="shop-now-btn">CONTINUE SHOPPING</a>
+        </div>
+
+        <div id="cart-content" class="cart-layout hidden">
+
+            <div class="cart-items-section">
+                <div class="select-all-wrapper" id="select-all-container">
+                    <input type="checkbox" id="select-all-checkbox" class="cart-checkbox"
+                        onchange="toggleSelectAllCartItems(this.checked)">
+                    <label for="select-all-checkbox">Select All</label>
+                </div>
+
+                <div id="cart-items-container"></div>
+            </div>
+
+            <div class="cart-summary-section">
+                <h3>Order Summary</h3>
+
+                <div class="summary-row">
+                    <a>Subtotal</a>
+                    <span id="summary-subtotal"></span>
+                </div>
+                <div class="summary-row">
+                    <a>Estimated Shipping</a>
+                    <span id="summary-delivery"></span>
+                </div>
+                <hr class="summary-divider">
+                <div class="summary-row total-row">
+                    <a>Total</a>
+                    <span id="summary-total"></span>
+                </div>
+                <button class="checkout-btn">CHECKOUT</button>
+
+                <div class="cart-policies-section">
+                    <div class="policy-item">
+                        <i class="fi fi-rs-shield-check"></i>
+                        <div class="policy-text">
+                            <h4>Secure Checkout</h4>
+                            <p>Your payment information is safe.</p>
+                        </div>
+                    </div>
+                    <div class="policy-item">
+                        <i class="fi fi-rs-badge-check"></i>
+                        <div class="policy-text">
+                            <h4>Premium Quality</h4>
+                            <p>Crafted with 100% authentic materials.</p>
+                        </div>
+                    </div>
+                    <div class="policy-item">
+                        <i class="fi fi-rr-shipping-fast"></i>
+                        <div class="policy-text">
+                            <h4>Fast Shipping</h4>
+                            <p>Reliable nationwide delivery with every order</p>
+                        </div>
+                    </div>
+                    <div class="policy-item">
+                        <i class="fi fi-rs-headset"></i>
+                        <div class="policy-text">
+                            <h4>Need Help?</h4>
+                            <p><a href="chat-support.html">Contact PACE Support</a></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <dialog id="delete-confirm-modal">
+        <div class="delete-modal-content">
+            <div class="delete-header">
+                <i class="fi fi-rs-trash"></i>
+                <h4>Remove from Cart?</h4>
+            </div>
+
+            <p class="delete-text">Are you sure you want to remove this item?</p>
+
+            <div class="delete-actions">
+                <button onclick="closeDeleteModal()" class="btn-cancel">CANCEL</button>
+                <button id="btn-confirm-remove" class="btn-remove">REMOVE</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="empty-selection-modal">
+        <div class="delete-modal-content">
+            <div class="delete-header">
+                <i class="fi fi-rs-exclamation"></i>
+                <h4>No Items Selected</h4>
+            </div>
+            <p class="delete-text">Please select at least one product to proceed to checkout.</p>
+            <div class="delete-actions">
+                <button onclick="closeEmptySelectionModal()" class="btn-remove">OK</button>
+            </div>
+        </div>
+    </dialog>
+
+    <div id="footer-container" class="reveal"></div>
+
+    <script src="global.js"></script>
+    <script src="cart.js"></script>
+</body>
+
+</html>

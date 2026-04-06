@@ -1,0 +1,301 @@
+/* SPLIT LAYOUT WRAPPER */
+.messenger-wrapper {
+    flex: 1;
+    display: flex;
+    background: #fff;
+    min-height: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* LEFT SIDE: CONTACTS */
+.contacts-sidebar {
+    width: 350px;
+    background: #fafafa;
+    border-right: 1px solid #eaeaea;
+    display: flex;
+    flex-direction: column;
+}
+
+.contacts-search {
+    padding: 20px;
+    border-bottom: 1px solid #eaeaea;
+    display: flex;
+    align-items: center;
+    background: #fff;
+}
+
+.contacts-search i {
+    color: var(--gray-text);
+    padding: 5px 10px 0 0;
+}
+
+.contacts-search input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    color: var(--darkgray-text);
+}
+
+.contacts-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.contacts-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.contacts-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-left: 4px solid transparent;
+}
+
+.contact-item:hover {
+    background: #FFF9F5;
+}
+
+.contact-item.active {
+    background: #FFF3EB;
+    border-left-color: var(--brand-color);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.contact-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--brand-color);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    object-fit: cover;
+}
+
+.contact-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.contact-info h4 {
+    margin: 0 0 3px 0;
+    font-size: 14px;
+    color: var(--darkgray-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contact-info p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--gray-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* RIGHT SIDE: CHAT WINDOW */
+.chat-window {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+}
+
+.chat-blank-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-text);
+}
+
+.chat-active-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* GINAYA ANG ORANGE HEADER SA SCREENSHOT MO */
+.chat-header {
+    padding: 20px;
+    background-color: var(--brand-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header-user {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.chat-header-user h3 {
+    margin: 0 0 2px 0;
+    font-size: 16px;
+    color: var(--bg-color);
+}
+
+.chat-header-user p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--bg-color);
+}
+
+/* CHAT BUBBLES */
+.chat-messages-area {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #fcfcfc;
+}
+
+.chat-messages-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages-area::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.msg-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 70%;
+}
+
+.msg-wrapper.customer {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.msg-wrapper.admin {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.msg-bubble {
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.msg-wrapper.customer .msg-bubble {
+    background: #eaeaea;
+    color: var(--darkgray-text);
+    border-bottom-left-radius: 4px;
+}
+
+.msg-wrapper.admin .msg-bubble {
+    background: var(--brand-color);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.msg-time {
+    font-size: 10px;
+    color: var(--gray-text);
+    margin-top: 5px;
+}
+
+/* INPUT AREA */
+.chat-input-area {
+    padding: 20px;
+    border-top: 1px solid #eaeaea;
+    display: flex;
+    gap: 15px;
+    background: #fff;
+}
+
+.chat-input-area input {
+    flex: 1;
+    padding: 12px 20px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--darkgray-text);
+    transition: 0.3s;
+}
+
+.chat-input-area input:focus {
+    border-color: var(--brand-color);
+}
+
+.chat-input-area button {
+    background: var(--brand-color);
+    color: #fff;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.chat-input-area button i {
+    padding: 5px 1px 0 0;
+}
+
+.chat-input-area button:hover {
+    background: var(--darkgray-text);
+}
+
+/* UNREAD MESSAGES HIGHLIGHT */
+.contact-item.unread {
+    position: relative;
+}
+
+.contact-item.unread::after {
+    content: '';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: var(--brand-color);
+    border-radius: 50%;
+    /* Adds a soft, modern glow around the unread dot */
+    box-shadow: 0 0 0 4px rgba(199, 110, 54, 0.15); 
+}
+
+.contact-item.unread .contact-info h4 {
+    font-weight: 700;
+    color: var(--darkgray-text);
+}
+
+.contact-item.unread .contact-info p {
+    font-weight: 600;
+    color: var(--darkgray-text);
+}

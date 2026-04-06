@@ -1,0 +1,647 @@
+/* =========================================
+   PAGE SPECIFIC LAYOUT
+   ========================================= */
+#products-table-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#products-table-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding-bottom: 10px;
+}
+
+/* =========================================
+   TABLE CONTROLS (Top Right)
+   ========================================= */
+.table-controls-right {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* =========================================
+   CUSTOM SELECT DROPDOWN (FLAT ICON)
+   ========================================= */
+
+/* 1. WRAPPER STYLE */
+.custom-select-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.custom-select-wrapper i {
+    position: absolute;
+    right: 12px;
+    font-size: 16px;
+    color: var(--gray-text);
+    pointer-events: none;
+    padding-top: 5px;
+}
+
+/* 3. ADMIN SELECT STYLE */
+.admin-select {
+    padding: 10px 35px 10px 12px;
+    /* Ang 35px sa right ay para hindi pumatong ang text sa icon */
+    border-radius: 6px;
+    border: 1px solid #eaeaea;
+    background: #f5f5f5;
+    color: var(--gray-text);
+    font-size: 13px;
+    appearance: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Focus and Hover states */
+.admin-select:focus {
+    border-color: var(--brand-color);
+}
+
+.admin-select option {
+    background: #fff;
+    color: var(--darkgray-text);
+    text-align: left;
+    font-size: 14px;
+}
+
+.btn-primary-add {
+    background-color: var(--brand-color);
+    color: var(--bg-color);
+    border: none;
+    padding: 6px 15px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+}
+
+.btn-primary-add i {
+    font-size: 16px;
+    padding-top: 3px;
+}
+
+.btn-primary-add:hover {
+    background-color: var(--darkgray-text);
+}
+
+.table-product-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.table-product-img {
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #eaeaea;
+}
+
+.table-product-name {
+    display: flex;
+    flex-direction: column;
+}
+
+.table-product-name strong {
+    color: var(--darkgray-text);
+    font-size: 14px;
+}
+
+.table-product-name span {
+    color: var(--gray-text);
+    font-size: 12px;
+}
+
+/* STATUS BADGES */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-active {
+    background: #e8f5e9;
+    color: #1b8f50;
+}
+
+.status-low {
+    background: #fef5e7;
+    color: #f39c12;
+}
+
+.status-out {
+    background: #fdedec;
+    color: #e74c3c;
+}
+
+/* ACTION BUTTONS */
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--gray-text);
+    transition: 0.2s;
+    margin-left: 10px;
+}
+
+.action-btn.edit:hover {
+    color: #3498db;
+}
+
+.action-btn.delete:hover {
+    color: #e74c3c;
+}
+
+/* =========================================
+   ADMIN FORM MODAL
+   ========================================= */
+.admin-form-modal {
+    max-width: 500px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.modal-header {
+    background: #f9f9f9;
+    padding: 20px 25px;
+    border-bottom: 1px solid #eaeaea;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--darkgray-text);
+    font-size: 18px;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--gray-text);
+    line-height: 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.input-group.full-width {
+    grid-column: span 2;
+}
+
+.input-group label {
+    font-size: 12px;
+    color: var(--gray-text);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.input-group input[type="text"],
+.input-group input[type="number"],
+.input-group select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--darkgray-text);
+    outline: none;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    border-color: var(--brand-color);
+}
+
+.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.checkbox-group label {
+    text-transform: none;
+    font-size: 14px;
+    color: var(--darkgray-text);
+    cursor: pointer;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eaeaea;
+}
+
+.btn-save {
+    background-color: var(--brand-color);
+    color: var(--bg-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-save:hover {
+    opacity: 0.9;
+}
+
+/* =========================================
+   ACCOUNT-STYLE MODALS & FORMS (FIXED)
+   ========================================= */
+.account-dialog {
+    border: none;
+    outline: none;
+    border-radius: 12px;
+    padding: 30px;
+    width: 90%;
+    max-width: 600px;
+    box-sizing: border-box;
+    /* FIX: Pinipigilan ang paglampas ng content */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    margin: auto;
+    overflow-x: hidden;
+    /* FIX: Tatanggalin ang horizontal scrollbar */
+}
+
+.account-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(1px);
+}
+
+.account-dialog[open] {
+    animation: popIn 0.3s ease forwards;
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.dialog-header h3 {
+    font-size: 20px;
+    color: var(--darkgray-text);
+    margin: 0;
+}
+
+/* FIX: Binalik sa eksaktong design ng Address Book ang X button */
+.dialog-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--gray-text);
+    cursor: pointer;
+    transition: color 0.3s;
+    padding: 0;
+}
+
+.dialog-close:hover {
+    color: var(--brand-color);
+}
+
+.dialog-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.account-form-row {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.account-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.account-input-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--darkgray-text);
+    padding-left: 3px;
+}
+
+/* FIX: Box-sizing para hindi lumampas sa form container */
+.account-input-field {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+    font-family: inherit;
+    color: var(--darkgray-text);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.account-input-field:focus {
+    border-color: var(--brand-color);
+}
+
+.account-save-btn {
+    padding: 15px;
+    background-color: var(--brand-color);
+    color: var(--bg-color);
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.account-save-btn:hover {
+    background-color: var(--darkgray-text);
+}
+
+/* =========================================
+   CONFIRMATION (DELETE) MODAL STYLES
+   ========================================= */
+.confirm-dialog {
+    max-width: 400px;
+    padding: 30px 24px 20px;
+}
+
+.confirm-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.confirm-icon {
+    font-size: 50px;
+    color: var(--brand-color);
+    margin-bottom: 10px;
+    line-height: 1;
+}
+
+.confirm-icon i {
+    font-size: 50px;
+}
+
+.confirm-modal-content h3 {
+    font-size: 20px;
+    color: var(--darkgray-text);
+    margin-bottom: 10px;
+}
+
+.confirm-modal-content p {
+    font-size: 14px;
+    color: var(--gray-text);
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+}
+
+.confirm-actions button {
+    flex: 1;
+    padding: 12px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel {
+    border: 2px solid var(--brand-color);
+    color: var(--brand-color);
+    background: var(--bg-color);
+}
+
+.btn-cancel:hover {
+    border: 2px solid var(--darkgray-text);
+    color: var(--bg-color);
+    background: var(--darkgray-text);
+}
+
+.btn-confirm {
+    background-color: var(--brand-color);
+    color: var(--bg-color);
+    border: 2px solid var(--brand-color);
+}
+
+.btn-confirm:hover {
+    border: 2px solid var(--darkgray-text);
+    color: var(--bg-color);
+    background: var(--darkgray-text);
+}
+
+/* =========================================
+   PAGINATION STYLES
+   ========================================= */
+.table-scroll-container {
+    flex: 1;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 20px 7px;
+    border-top: 1px solid #eaeaea;
+    gap: 8px;
+}
+
+.page-btn {
+    padding: 6px 12px;
+    border: 1px solid #eaeaea;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--darkgray-text);
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+    font-family: inherit;
+}
+
+.page-btn:hover {
+    border-color: var(--brand-color);
+    color: var(--brand-color);
+}
+
+.page-btn.active {
+    background: var(--brand-color);
+    color: var(--bg-color);
+    border-color: var(--brand-color);
+}
+
+/* =========================================
+   MEDIA UPLOAD STYLES (Copied from Order History)
+   ========================================= */
+.media-upload-box {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9f9f9;
+    color: #888;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+}
+
+.media-upload-box:hover {
+    background: #f0f0f0;
+    border-color: var(--brand-color);
+    color: var(--brand-color);
+}
+
+.media-upload-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.media-preview-box {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.media-preview-content {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.media-delete-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    line-height: 0;
+    padding-bottom: 2px;
+}
+
+.media-delete-btn:hover {
+    background: #c9302c;
+}
+
+/* =========================================
+   NEW DYNAMIC SIZE GRID STYLES
+   ========================================= */
+.size-stock-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 5px;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eaeaea;
+}
+
+.size-stock-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.size-stock-item label {
+    font-size: 12px !important;
+    color: var(--gray-text) !important;
+    text-transform: none !important;
+    font-weight: 700;
+}
+
+.size-qty-input {
+    padding: 8px !important;
+    text-align: center;
+    font-weight: 600;
+}
+
+.size-qty-input:focus {
+    background: #fff;
+}
+
+/* Fallback responsive rule if modal shrinks on smaller screens */
+@media (max-width: 500px) {
+    .size-stock-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}

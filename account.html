@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="account.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="account-page-container reveal">
+        <div class="breadcrumb-section" style="max-width: var(--max-wide);">
+            <a href="homepage.html">Home</a> /<span class="current-page">Account Settings</span>
+        </div>
+
+        <div class="account-dashboard-wrapper">
+            <aside class="account-sidebar">
+                <div class="account-sidebar-profile">
+                    <div class="account-img-container">
+                        <div class="account-profile-initials" id="sidebar-initials"></div>
+                        <img id="sidebar-img" src="" style="display:none;" alt="Profile Picture">
+                        
+                        <label for="profile-upload" class="account-upload-btn">
+                            <i class="fi fi-rr-camera"></i>
+                        </label>
+                        <input type="file" id="profile-upload" accept="image/*" style="display: none;">
+
+                        <button id="delete-photo-btn" class="account-delete-photo-btn" onclick="openDeletePhotoModal()" title="Remove Photo" style="display: none;">
+                            <i class="fi fi-rs-trash"></i>
+                        </button>
+                    </div>
+                    <h3 id="sidebar-name">User Name</h3>
+                    <p id="sidebar-email">Email Address</p>
+                </div>
+                <nav class="account-sidebar-nav">
+                    <a href="account.html" class="active"><i class="fi fi-rr-settings"></i> Account Settings</a>
+                    <a href="address.html"><i class="fi fi-rr-map-marker"></i> Address Book</a>
+                    <a href="payment-method.html"><i class="fi fi-rr-credit-card"></i> Payment Methods</a>
+                    <a href="order-history.html"><i class="fi fi-rr-box"></i> Order History</a>
+                    <a href="notification.html"><i class="fi fi-rr-bell"></i> Notifications</a>
+                    <a href="chat-support.html"><i class="fi fi-rr-headset"></i> Chat Support</a>
+                    <button onclick="logoutUser()" class="account-sidebar-logout"><i
+                            class="fi fi-rs-sign-out-alt"></i>Logout</button>
+                </nav>
+            </aside>
+
+            <main class="account-content">
+                <h2>Account Settings</h2>
+                <p class="account-subtitle">Manage your profile information and security.</p>
+
+                <div class="account-info-card">
+                    <div class="card-header-row">
+                        <h3>Personal Information</h3>
+                        <button type="button" class="account-edit-btn" onclick="openAccountModal('personal-modal')"><i
+                                class="fi fi-rr-edit"></i> Edit</button>
+                    </div>
+                    <div class="card-data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Full Name</span>
+                            <span class="data-value" id="disp-name"></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Phone Number</span>
+                            <span class="data-value" id="disp-phone"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="account-info-card">
+                    <div class="card-header-row">
+                        <h3>Account Details</h3>
+                        <button type="button" class="account-edit-btn" onclick="openAccountModal('account-modal')"><i
+                                class="fi fi-rr-edit"></i> Edit</button>
+                    </div>
+                    <div class="card-data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Email Address</span>
+                            <span class="data-value" id="disp-email"></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Username</span>
+                            <span class="data-value" id="disp-username"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="account-info-card">
+                    <div class="card-header-row">
+                        <h3>Security</h3>
+                        <button type="button" class="account-edit-btn" onclick="openAccountModal('password-modal')"><i
+                                class="fi fi-rr-edit"></i> Edit</button>
+                    </div>
+                    <div class="card-data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Password</span>
+                            <span class="data-value">••••••••</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="account-danger-zone">
+                    <div class="danger-zone-inner">
+                        <h3 class="danger-title"></i> DANGER ZONE</h3>
+                        <p class="danger-text">Once you delete your account, there is no going back. Please be certain.
+                        </p>
+                        <button type="button" class="account-delete-btn" onclick="openDeleteAccountModal()">
+                            PERMANENTLY DELETE ACCOUNT
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <dialog id="personal-modal" class="account-dialog">
+        <div class="dialog-header">
+            <h3>Edit Personal Information</h3>
+            <button type="button" class="dialog-close" onclick="closeAccountModal('personal-modal')">&times;</button>
+        </div>
+        <form id="form-personal" class="dialog-form">
+            <div class="account-form-row">
+                <div class="account-input-group">
+                    <label>First Name</label>
+                    <input type="text" id="acc-fname" class="account-input-field" required>
+                </div>
+                <div class="account-input-group">
+                    <label>Last Name</label>
+                    <input type="text" id="acc-lname" class="account-input-field" required>
+                </div>
+            </div>
+            <div class="account-input-group" style="margin-top: 10px;">
+                <label>Phone Number</label>
+                <div class="phone-input-wrapper">
+                    <span class="phone-prefix">+63 9</span>
+                    <input type="tel" id="acc-phone" class="account-input-field" placeholder="00 000 0000">
+                </div>
+                <p id="acc-phone-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
+            </div>
+            <button type="submit" class="account-save-btn" style="margin-top: 20px;">Save Changes</button>
+        </form>
+    </dialog>
+
+    <dialog id="account-modal" class="account-dialog">
+        <div class="dialog-header">
+            <h3>Edit Account Details</h3>
+            <button type="button" class="dialog-close" onclick="closeAccountModal('account-modal')">&times;</button>
+        </div>
+        <form id="form-account" class="dialog-form">
+            <div class="account-input-group">
+                <label>Email Address</label>
+                <input type="email" id="acc-email" class="account-input-field" readonly title="Email cannot be changed">
+                <span class="account-helper-text">Your email address cannot be changed.</span>
+            </div>
+            <div class="account-input-group">
+                <label>Username</label>
+                <input type="text" id="acc-username" class="account-input-field" required>
+                <p id="acc-username-error" class="account-error-text error-hidden"></p>
+            </div>
+            <button type="submit" class="account-save-btn" style="margin-top: 20px;">Save Changes</button>
+        </form>
+    </dialog>
+
+    <dialog id="password-modal" class="account-dialog">
+        <div class="dialog-header">
+            <h3>Change Password</h3>
+            <button type="button" class="dialog-close" onclick="closeAccountModal('password-modal')">&times;</button>
+        </div>
+        <form id="form-password" class="dialog-form">
+            <div class="account-input-group">
+                <label>Current Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="acc-current-pass" class="account-input-field" required>
+                    <i class="fi fi-rr-eye-crossed toggle-password" data-target="acc-current-pass"></i>
+                </div>
+                <p id="err-current-pass" class="account-error-text error-hidden"></p>
+            </div>
+
+            <div class="account-input-group" style="margin-top: 10px;">
+                <label>New Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="acc-new-pass" class="account-input-field" required>
+                    <i class="fi fi-rr-eye-crossed toggle-password" data-target="acc-new-pass"></i>
+                </div>
+                <span id="help-new-pass" class="account-helper-text">Passwords must be at least 8 characters and include
+                    uppercase, lowercase, numbers, and symbols (e.g., @, #, $, %).</span>
+            </div>
+
+            <div class="account-input-group">
+                <label>Confirm Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="acc-confirm-pass" class="account-input-field" required>
+                    <i class="fi fi-rr-eye-crossed toggle-password" data-target="acc-confirm-pass"></i>
+                </div>
+                <p id="err-confirm-pass" class="account-error-text error-hidden"></p>
+            </div>
+
+            <button type="submit" class="account-save-btn" style="margin-top: 25px;">Update Password</button>
+        </form>
+    </dialog>
+
+    <dialog id="delete-account-modal" class="account-dialog confirm-dialog">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon">
+                <i class="fi fi-rs-trash"></i>
+            </div>
+            <h3>Delete Account?</h3>
+            <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+            <div class="confirm-actions">
+                <button type="button" class="btn-cancel" onclick="closeDeleteAccountModal()">CANCEL</button>
+                <button type="button" class="btn-confirm" onclick="executeDeleteAccount()">DELETE</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="delete-photo-modal" class="account-dialog confirm-dialog">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon">
+                <i class="fi fi-rs-trash"></i>
+            </div>
+            <h3>Remove Profile Photo?</h3>
+            <p>Are you sure you want to remove your profile picture?</p>
+            <div class="confirm-actions">
+                <button type="button" class="btn-cancel" onclick="closeDeletePhotoModal()">CANCEL</button>
+                <button type="button" class="btn-confirm" onclick="executeDeletePhoto()">REMOVE</button>
+            </div>
+        </div>
+    </dialog>
+
+    <div id="footer-container"></div>
+
+    <script src="global.js"></script>
+    <script src="account.js"></script>
+    <script src="authentication.js"></script>
+</body>
+
+</html>

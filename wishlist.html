@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="cart.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="cart-page-container reveal">
+        <div class="breadcrumb-section">
+            <a href="homepage.html">Home</a> / <span class="current-page">My Wishlist</span>
+        </div>
+
+        <div class="product-header-wrapper">
+            <div class="product-header">
+                <h1>My Wishlist <span id="cart-item-count">(0)</span></h1>
+            </div>
+        </div>
+
+        <div id="wishlist-empty" class="empty-state hidden">
+            <i class="fi fi-rs-heart-crack" style="font-size: 70px; color: var(--brand-color);"></i>
+            <h2>YOUR WISHLIST IS EMPTY</h2>
+            <p>When you add products to your wishlist, they will appear here.</p>
+            <a href="homepage.html" class="shop-now-btn">CONTINUE SHOPPING</a>
+        </div>
+
+        <div class="product-section wishlist-section" id="wishlist-container"></div>
+
+    </div>
+
+    <div id="footer-container" class="reveal"></div>
+
+    <script src="global.js"></script>
+    <script src="cart.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="authentication.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="auth-section reveal">
+        <div class="auth-card">
+
+            <div class="auth-image"></div>
+
+            <div class="auth-content">
+                <form id="login-form">
+                    <h1 class="auth-title">Login to <span>PACE</span></h1>
+                    <p class="auth-subtitle">Welcome back! Please enter your details.</p>
+
+                    <input type="text" id="login-username" class="input-field" placeholder="Username" required>
+                    <p class="field-error-msg" id="login-username-error"></p>
+
+                    <div class="password-wrapper">
+                        <input type="password" id="login-password" class="input-field" placeholder="Password" required>
+                        <i class="fi fi-rr-eye-crossed toggle-password" data-target="login-password"></i>
+                    </div>
+                    <p class="field-error-msg" id="login-password-error"></p>
+
+                    <a href="forgot-password.html" class="forgot-link">Forgot Password?</a>
+                    <button type="submit" class="auth-btn">LOGIN</button>
+
+                    <p class="bottom-text">New here? <a href="signup.html" class="bottom-link">Sign Up</a></p>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <script src="global.js"></script>
+    <script src="authentication.js"></script>
+</body>
+
+</html>

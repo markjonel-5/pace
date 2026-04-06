@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="faqs.css">
+    <link rel="stylesheet" href="size-guide.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="faq-page-container reveal">
+
+        <div class="sg-header-wrapper">
+            <h2>FREQUENTLY ASKED QUESTIONS</h2>
+            <p>Find quick answers to common questions about our products, shipping, and your account.</p>
+        </div>
+
+        <div class="accordion-container">
+
+            <div class="accordion-item">
+                <button class="accordion-btn">Where is my order? <i class="fi fi-rr-angle-small-down"></i></button>
+                <div class="accordion-content">
+                    <p>You can track your order by navigating to the 'Order History' tab in your Account Settings.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-btn">Do you offer free shipping? <i
+                        class="fi fi-rr-angle-small-down"></i></button>
+                <div class="accordion-content">
+                    <p>Yes! All orders automatically qualify for free standard shipping.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-btn">What payment methods work? <i
+                        class="fi fi-rr-angle-small-down"></i></button>
+                <div class="accordion-content">
+                    <p>We accept Credit/Debit Cards, GCash, and PayPal.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-btn">How do I use the size guide? <i
+                        class="fi fi-rr-angle-small-down"></i></button>
+                <div class="accordion-content">
+                    <p>Click the 'Size Guide' button on any product page to see exact measurements for Men's, Women's,
+                        and Kids' shoes.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-btn">How do I save shoes for later? <i
+                        class="fi fi-rr-angle-small-down"></i></button>
+                <div class="accordion-content">
+                    <p>Click the heart icon on any shoe to add it to your Wishlist.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-btn">Can I save multiple addresses? <i
+                        class="fi fi-rr-angle-small-down"></i></button>
+                <div class="accordion-content">
+                    <p>Yes! Go to 'Saved Addresses' in your Account to add and label multiple delivery locations.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-btn">Can I pick up my order in-store? <i
+                        class="fi fi-rr-angle-small-down"></i></button>
+                <div class="accordion-content">
+                    <p>Absolutely. Select "In-Store Pick Up" as your delivery method at checkout. Your shoes will be
+                        ready for collection at our physical store within 24 hours.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-btn">Do I need an account to place an order? <i
+                        class="fi fi-rr-angle-small-down"></i></button>
+                <div class="accordion-content">
+                    <p>No, you can check out as a guest. However, creating an account allows you to track your order
+                        history, save addresses, and use our built-in chat support.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    </div>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const accordionBtns = document.querySelectorAll('.accordion-btn');
+
+            accordionBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    // Close all other accordions
+                    accordionBtns.forEach(otherBtn => {
+                        if (otherBtn !== this) {
+                            otherBtn.classList.remove('active');
+                            otherBtn.nextElementSibling.style.maxHeight = null;
+                        }
+                    });
+
+                    // Toggle current accordion
+                    this.classList.toggle('active');
+                    const content = this.nextElementSibling;
+
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="global.js"></script>
+</body>
+
+</html>

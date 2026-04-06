@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="contact-us.css">
+    <link rel="stylesheet" href="size-guide.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="contact-page-container reveal">
+
+        <div class="sg-header-wrapper">
+            <h2>CONTACT US</h2>
+            <p>Find your perfect fit. Whether it's a sizing question or a style tip, our team is ready to help you step
+                up your game.</p>
+        </div>
+
+        <div class="contact-main-panel">
+
+            <div class="contact-image-col">
+                <img src="Contact Image/contact shoe.jpg" alt="PACE Sneakers">
+            </div>
+
+            <div class="contact-form-col">
+
+                <div class="contact-info-row">
+                    <div class="info-block">
+                        <h4>VISIT US</h4>
+                        <p>123 PACE Store, Iba, Hagonoy, Bulacan</p>
+                    </div>
+                    <div class="info-block">
+                        <h4>EMAIL US</h4>
+                        <p>pace@gmail.com</p>
+                    </div>
+                </div>
+
+                <form id="store-contact-form">
+                    <div class="input-group">
+                        <input type="text" id="contact-subject" placeholder="Subject" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="email" id="contact-email" placeholder="Your Email" required>
+                    </div>
+                    <div class="input-group">
+                        <textarea id="contact-message" placeholder="How can we help?" rows="7" required></textarea>
+                    </div>
+                    <button type="submit" class="contact-submit-btn">SEND MESSAGE</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const contactForm = document.getElementById('store-contact-form');
+
+            if (contactForm) {
+                contactForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    const subjectInput = document.getElementById('contact-subject').value;
+                    const message = document.getElementById('contact-message').value;
+
+                    // Uses the Subject input directly!
+                    const subject = encodeURIComponent(subjectInput);
+                    const body = encodeURIComponent(message);
+
+                    window.location.href = `mailto:pace@gmail.com?subject=${subject}&body=${body}`;
+
+                    setTimeout(() => { this.reset(); }, 1000);
+                });
+            }
+        });
+    </script>
+    <script src="global.js"></script>
+</body>
+
+</html>

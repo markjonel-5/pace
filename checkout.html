@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="cart.css">
+    <link rel="stylesheet" href="account.css">
+    <link rel="stylesheet" href="address.css">
+    <link rel="stylesheet" href="payment-method.css">
+    <link rel="stylesheet" href="checkout.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="checkout-page-container reveal">
+        <div class="breadcrumb-section" style="max-width: var(--min-wide);">
+            <a href="homepage.html">Home</a> / <a href="cart.html">Shopping Cart</a> / <span
+                class="current-page">Checkout</span>
+        </div>
+
+        <div class="product-header-wrapper">
+            <div class="product-header">
+                <h1>Checkout <span id="cart-item-count">(0)</span></h1>
+            </div>
+        </div>
+
+        <div class="checkout-layout">
+            <div class="checkout-left">
+
+                <div class="checkout-box">
+                    <div class="checkout-box-header">
+                        <h3 class="checkout-box-title">1. Contact Information</h3>
+                    </div>
+                    <div id="checkout-contact-content">
+                    </div>
+                </div>
+
+                <div class="checkout-box" id="checkout-address-box">
+                    <div class="checkout-box-header">
+                        <h3 class="checkout-box-title">2. Shipping Address</h3>
+                        <button class="add-address-btn" onclick="openAccountModal('address-modal')">
+                            <i class="fi fi-rr-plus"></i> Add Shipping Address
+                        </button>
+                    </div>
+                    <div id="checkout-address-content">
+                    </div>
+                </div>
+
+                <div class="checkout-box">
+                    <div class="checkout-box-header">
+                        <h3 class="checkout-box-title">3. Delivery Options</h3>
+                    </div>
+                    <div id="checkout-delivery-options" class="checkout-selection-list">
+
+                        <label class="checkout-option-label">
+                            <input type="radio" name="checkout-delivery-speed" value="0" data-name="Standard" checked>
+                            <div class="checkout-option-info">
+                                <h4 style="font-size: 16px; margin-bottom:3px; color: var(--darkgray-text);">Standard
+                                    Delivery <span style="float:right; color: #1b8f50; font-weight: 700;">FREE</span>
+                                </h4>
+                                <p style="color: var(--gray-text); font-size:14px;">3-5 Business Days</p>
+                            </div>
+                        </label>
+
+                        <label class="checkout-option-label">
+                            <input type="radio" name="checkout-delivery-speed" value="150" data-name="Express">
+                            <div class="checkout-option-info">
+                                <h4 style="font-size: 16px; margin-bottom:3px; color: var(--darkgray-text);">Express
+                                    Delivery <span style="float:right; color: var(--darkgray-text); font-weight: 700;">₱
+                                        150.00</span></h4>
+                                <p style="color: var(--gray-text); font-size:14px;">1-2 Business Days</p>
+                            </div>
+                        </label>
+
+                        <label class="checkout-option-label">
+                            <input type="radio" name="checkout-delivery-speed" value="0" data-name="PickUp">
+                            <div class="checkout-option-info">
+                                <h4 style="font-size: 16px; margin-bottom:3px; color: var(--darkgray-text);">In-Store
+                                    Pick Up <span style="float:right; color: #1b8f50; font-weight: 700;">FREE</span>
+                                </h4>
+                                <p style="color: var(--gray-text); font-size:14px;">Ready in 24 hours at PACE physical
+                                    store</p>
+                            </div>
+                        </label>
+
+                    </div>
+                </div>
+
+                <div class="checkout-box">
+                    <div class="checkout-box-header">
+                        <h3 class="checkout-box-title">4. Payment Method</h3>
+                        <button class="add-address-btn" onclick="openAccountModal('payment-modal')">
+                            <i class="fi fi-rr-plus"></i> Add Payment Method
+                        </button>
+                    </div>
+                    <div id="checkout-payment-content">
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkout-right">
+                <div class="cart-summary-section" style="position: sticky; top: 100px;">
+                    <h3 style="margin-bottom: 20px;">Order Summary</h3>
+
+                    <div id="checkout-sidebar-review"></div>
+
+                    <hr class="summary-divider" style="margin: 15px 0;">
+
+                    <div class="summary-row">
+                        <a>Subtotal</a>
+                        <span id="checkout-subtotal">₱ 0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <a>Shipping Fee </a>
+                        <span id="checkout-delivery" style="color: #1b8f50;">FREE</span>
+                    </div>
+                    <hr class="summary-divider">
+                    <div class="summary-row total-row">
+                        <a>Total</a>
+                        <span id="checkout-total">₱ 0.00</span>
+                    </div>
+                    <button class="checkout-btn" onclick="placeOrder()">PLACE ORDER</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <dialog id="address-modal" class="account-dialog">
+        <div class="dialog-header">
+            <h3>Add New Address</h3>
+            <button type="button" class="dialog-close" onclick="closeAccountModal('address-modal')">&times;</button>
+        </div>
+        <form id="form-new-address" class="dialog-form">
+            <div class="account-form-row">
+                <div class="account-input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="addr-fullname" class="account-input-field" placeholder="e.g. Juan dela Cruz"
+                        required>
+                </div>
+                <div class="account-input-group">
+                    <label>Phone Number</label>
+                    <div class="phone-input-wrapper">
+                        <span class="phone-prefix">+63 9</span>
+                        <input type="tel" id="addr-phone" class="account-input-field" placeholder="00 000 0000"
+                            required>
+                    </div>
+                    <p id="addr-phone-error" class="account-error-text error-hidden"></p>
+                </div>
+            </div>
+            <div class="account-form-row">
+                <div class="account-input-group">
+                    <label>Region / Province</label>
+                    <input type="text" id="addr-region" class="account-input-field" placeholder="e.g. Bulacan" required>
+                </div>
+                <div class="account-input-group">
+                    <label>City / Municipality</label>
+                    <input type="text" id="addr-city" class="account-input-field" placeholder="e.g. Malolos City"
+                        required>
+                </div>
+            </div>
+            <div class="account-form-row">
+                <div class="account-input-group">
+                    <label>Barangay</label>
+                    <input type="text" id="addr-brgy" class="account-input-field" placeholder="e.g. Atlag" required>
+                </div>
+                <div class="account-input-group">
+                    <label>Postal Code</label>
+                    <input type="text" id="addr-postal" class="account-input-field" placeholder="e.g. 3000" required>
+                </div>
+            </div>
+            <div class="account-input-group">
+                <label>Street Name, Building, House No.</label>
+                <textarea id="addr-street" class="account-input-field" rows="2"
+                    placeholder="e.g. Unit 123, Estrella Street" required></textarea>
+            </div>
+            <div class="account-input-group">
+                <label style="margin-top: 10px; display:block;">Label As:</label>
+                <div class="label-options">
+                    <label class="radio-label">
+                        <input type="radio" name="addr-label" value="Home" checked>
+                        <span class="radio-btn">Home</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="addr-label" value="Work">
+                        <span class="radio-btn">Work</span>
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="account-save-btn" style="margin-top: 20px;">Save Address</button>
+        </form>
+    </dialog>
+
+    <dialog id="payment-modal" class="account-dialog">
+        <div class="dialog-header">
+            <h3>Add Payment Method</h3>
+            <button type="button" class="dialog-close" onclick="closeAccountModal('payment-modal')">&times;</button>
+        </div>
+        <form id="form-new-payment" class="dialog-form">
+            <div class="account-input-group">
+                <label style="margin-bottom: 10px; display:block;">Select Payment Type</label>
+                <div class="pm-type-options">
+                    <label class="pm-radio-label">
+                        <input type="radio" name="pm-type" value="Card" checked>
+                        <span class="pm-radio-btn"><i class="fi fi-rr-credit-card"></i> Card</span>
+                    </label>
+                    <label class="pm-radio-label">
+                        <input type="radio" name="pm-type" value="GCash">
+                        <span class="pm-radio-btn"><i class="fi fi-rr-smartphone"></i> GCash</span>
+                    </label>
+                    <label class="pm-radio-label">
+                        <input type="radio" name="pm-type" value="PayPal">
+                        <span class="pm-radio-btn"><i class="fi fi-brands-paypal"></i> PayPal</span>
+                    </label>
+                </div>
+            </div>
+            <div id="fields-card" class="pm-dynamic-fields active-fields">
+                <div class="account-input-group" style="margin-top: 15px;">
+                    <label>Name on Card</label>
+                    <input type="text" id="pm-card-name" class="account-input-field" placeholder="Juan dela Cruz">
+                </div>
+                <div class="account-input-group" style="margin-top: 15px;">
+                    <label>Card Number</label>
+                    <input type="text" id="pm-card-number" class="account-input-field" placeholder="0000 0000 0000 0000"
+                        maxlength="19">
+                    <p id="pm-card-number-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
+                </div>
+                <div class="account-form-row" style="margin-top: 15px;">
+                    <div class="account-input-group">
+                        <label>Expiry Date</label>
+                        <input type="text" id="pm-card-exp" class="account-input-field" placeholder="MM/YY"
+                            maxlength="5">
+                        <p id="pm-card-exp-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
+                    </div>
+                    <div class="account-input-group">
+                        <label>CVV/CVC</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="pm-card-cvv" class="account-input-field" placeholder="123"
+                                maxlength="4">
+                        </div>
+                        <p id="pm-card-cvv-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
+                    </div>
+                </div>
+            </div>
+            <div id="fields-gcash" class="pm-dynamic-fields hidden-fields">
+                <div class="account-input-group" style="margin-top: 15px;">
+                    <label>GCash Registered Name</label>
+                    <input type="text" id="pm-gcash-name" class="account-input-field" placeholder="Juan dela Cruz">
+                </div>
+                <div class="account-input-group" style="margin-top: 15px;">
+                    <label>GCash Mobile Number</label>
+                    <div class="phone-input-wrapper">
+                        <span class="phone-prefix">+63 9</span>
+                        <input type="tel" id="pm-gcash-phone" class="account-input-field" placeholder="00 000 0000">
+                    </div>
+                    <p id="pm-gcash-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
+                </div>
+            </div>
+            <div id="fields-paypal" class="pm-dynamic-fields hidden-fields">
+                <div class="account-input-group" style="margin-top: 15px;">
+                    <label>PayPal Email Address</label>
+                    <input type="email" id="pm-paypal-email" class="account-input-field" placeholder="juan@example.com">
+                </div>
+            </div>
+            <button type="submit" class="account-save-btn" style="margin-top: 25px;">Save Payment Method</button>
+        </form>
+    </dialog>
+
+    <div id="footer-container"></div>
+    
+    <script src="global.js"></script>
+    <script src="checkout.js"></script>
+</body>
+
+</html>

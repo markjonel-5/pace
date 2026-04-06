@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="homepage.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="cover-photo reveal">
+        <div class="cover-box">
+            <div class="cover-tag">FIND YOUR RHYTHM</div>
+
+            <h1>MOVE AT YOUR OWN PACE</h1>
+
+            <p>Footwear made to match your step and your lifestyle</p>
+
+            <a href="all-product.html" class="explore-btn">EXPLORE COLLECTION</a>
+        </div>
+    </div>
+
+    <div class="featured-text reveal">
+        <p>YOU MIGHT LIKE THIS</p>
+
+        <a href="all-product.html" class="seeall-btn">SEE ALL</a>
+    </div>
+
+    <div class="homepage-product-section product-section reveal" id="product-container"></div>
+
+    <div class="section-header reveal">
+        <h1>GREAT STYLE STARTS HERE</h1>
+        <p>CHOOSE A CATEGORY THAT FITS YOU</p>
+    </div>
+
+    <div class="category-section reveal">
+        <div class="category-image">
+            <div class="image-track" id="image-track">
+                <img src="Category Image/Men Category.jpg" alt="Men">
+                <img src="Category Image/Women Category.jpg" alt="Women">
+                <img src="Category Image/Kid Category.jpg" alt="Kids">
+            </div>
+
+            <button class="arrow-prev" onclick="nextCategory(-1)">
+                <i class="fi fi-rr-arrow-small-left"></i>
+            </button>
+
+            <button class="arrow-next" onclick="nextCategory(1)">
+                <i class="fi fi-rr-arrow-small-right"></i>
+            </button>
+
+            <div class="carousel-indicators">
+                <span class="dot active" onclick="goToCategory(0)"></span>
+                <span class="dot" onclick="goToCategory(1)"></span>
+                <span class="dot" onclick="goToCategory(2)"></span>
+            </div>
+        </div>
+
+        <div class="category-info" id="cat-bg">
+            <h1 id="cat-title">MEN</h1>
+            <p id="cat-desc">Build for style, comfort, and confidence</p>
+            <button onclick="visitCategory()">Explore Collection</button>
+        </div>
+    </div>
+
+    <div class="section-header reveal">
+        <h1>ABOUT PACE</h1>
+        <p>PACE is a footwear brand built for people who move with purpose. We design shoes that balance style, comfort,
+            <br>and durability for everyday life.
+        </p>
+    </div>
+
+    <div class="about-section reveal" id="about-info"></div>
+
+    <div class="section-header reveal">
+        <h1>CONTACT US</h1>
+        <p>Find your perfect fit. Whether it's a sizing question or a style tip, our team is ready to help you step up
+            your game.</p>
+    </div>
+
+    <div class="contact-section reveal">
+
+        <div class="contact-image">
+            <img src="Contact Image/contact shoe.jpg" alt="">
+        </div>
+
+        <div class="contact-box">
+
+            <div class="contact-content">
+                <div>
+                    <h3>VISIT US</h3>
+                    <p>123 PACE Store, Iba, Hagonoy, Bulacan</p>
+                </div>
+
+                <div>
+                    <h3>EMAIL US</h3>
+                    <p>pace@gmail.com</p>
+                </div>
+            </div>
+
+            <form id="contact-form">
+                <input type="text" id="contact-subject" placeholder="Subject" required>
+                <input type="email" id="contact-email" placeholder="Your Email" required>
+                <textarea id="contact-message" placeholder="How can we help?" required></textarea>
+                <button type="submit" class="contact-btn">SEND MESSAGE</button>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="section-header reveal">
+        <h1>MEET OUR TEAM</h1>
+        <p>Setting the pace for modern street style. We run the code so you can run the streets.</p>
+    </div>
+
+    <div class="team-section" id="team-card"></div>
+
+    <div id="footer-container"></div>
+
+    <script src="global.js"></script>
+    <script src="homepage.js"></script>
+    <script src="shop.js"></script>
+</body>
+
+</html>

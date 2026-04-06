@@ -1,0 +1,142 @@
+/* PAYMENT METHOD CARD START */
+#payment-list-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.pm-card {
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    padding: 25px;
+    position: relative;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.pm-card-top {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.pm-icon-box {
+    width: 50px;
+    height: 50px;
+    background-color: #FFF3EB;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--darkgray-text);
+    color: var(--brand-color);
+}
+
+.pm-icon-box i {
+    font-size: 24px;
+    padding-top: 6px;
+}
+
+.pm-card-top h4 {
+    color: var(--darkgray-text);
+    font-size: 18px;
+    margin: 0;
+}
+
+.pm-card-top p {
+    color: var(--gray-text);
+    font-size: 14px;
+    margin: 0;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.pm-details {
+    color: var(--darkgray-text);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+}
+
+.pm-actions {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+}
+/* PAYMENT METHOD CARD END */
+
+/* EMPTY PAYMENT METHODS */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--gray-text);
+}
+
+.empty-state .wallet-icon {
+    font-size: 70px;
+    color: var(--brand-color);
+    display: block;
+}
+
+/* GCASH, CARD, PAYPAL MODAL AND RADIO BUTTON START */
+.pm-type-options {
+    display: flex;
+    gap: 10px;
+}
+
+.pm-radio-label {
+    flex: 1;
+    cursor: pointer;
+}
+
+.pm-radio-label input[type="radio"] {
+    display: none;
+}
+
+.pm-radio-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 10px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--gray-text);
+    transition: 0.3s;
+    text-align: center;
+}
+
+.pm-radio-btn i {
+    font-size: 20px;
+    padding-top: 4px;
+}
+
+.pm-radio-label input[type="radio"]:checked + .pm-radio-btn {
+    border-color: var(--brand-color);
+    background-color: #FFF3EB;
+    color: var(--brand-color);
+}
+
+/* GCASH, CARD, PAYPAL MODAL AND RADIO BUTTON START */
+
+/* LOGIC TO HIDE/SHOW DYNAMIC FORMS */
+.hidden-fields {
+    display: none !important;
+}
+
+.active-fields {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}

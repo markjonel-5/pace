@@ -1,0 +1,170 @@
+/* ALL PRODUCT CATEGORIES IMAGE START */
+.all-category {
+    max-width: 1920px;
+    margin: 0 auto;
+    padding-top: 60px;
+    height: 550px;
+}
+
+.all-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    height: 100%;
+    width: 100%;
+}
+
+.all-card {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.all-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: bottom center;
+    transition: transform 0.6s ease;
+    display: block;
+}
+
+.all-title {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    text-align: center;
+    transition: transform 0.6s ease;
+}
+
+.all-title h3 {
+    color: var(--bg-color);
+    font-size: 60px;
+    font-style: italic;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 0;
+    text-shadow: 2px 2px 20px rgba(0, 0, 0, 0.5);
+}
+
+.all-card:hover img {
+    transform: scale(1.05);
+}
+
+.all-card:hover .all-title {
+    transform: translate(-50%, -50%) scale(1.05);
+}
+
+.load-more-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin: 40px auto 80px;
+}
+
+#load-btn {
+    background-color: var(--brand-color);
+    color: var(--bg-color);
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: none;
+    transition: 0.3s ease;
+}
+
+#load-btn:hover {
+    background-color: var(--darkgray-text);
+}
+
+#load-count {
+    color: var(--gray-text);
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+/* ALL PRODUCT CATEGORIES IMAGE END */
+
+/* ALL, MEN, WOMEN, KIDS, NEW - SORT START */
+.sort-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.sort-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 15px;
+    background: transparent;
+    border: 1px solid var(--gray-text);
+    border-radius: 4px;
+    color: var(--darkgray-text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.sort-btn i {
+    font-size: 20px;
+    padding-top: 7px;
+}
+
+.sort-btn:hover {
+    color: var(--brand-color);
+    border-color: var(--brand-color);
+}
+
+.sort-menu {
+    position: absolute;
+    top: 110%;
+    right: 0;
+    width: 180px;
+    padding: 10px 0;
+    background: var(--bg-color);
+    border-radius: 6px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+
+.sort-dropdown:hover .sort-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.sort-menu button {
+    display: block;
+    width: 100%;
+    padding: 10px 20px;
+    color: var(--gray-text);
+    text-align: left;
+    font-size: 14px;
+    transition: 0.2s;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.sort-menu button:hover {
+    background-color: #FFF4EC;
+    color: var(--brand-color);
+    padding-left: 25px;
+}
+
+/* ALL, MEN, WOMEN, KIDS, NEW - SORT END */

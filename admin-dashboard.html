@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="admin-dashboard.css">
+
+    <script>
+        fetch('Database/check-admin.php')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+
+                    window.location.replace("login.html");
+                }
+            })
+            .catch(error => {
+
+                window.location.replace("login.html");
+            });
+    </script>
+</head>
+
+<body>
+    <div id="chart-tooltip" class="chart-tooltip"></div>
+
+    <header class="admin-navbar-section">
+        <div class="admin-nav-logo">
+            <a href="admin-dashboard.html"><img src="Brand Image/pace logo orange.png" alt="PACE Logo"
+                    style="height: 35px; object-fit: contain; padding-top: 3px;"></a>
+        </div>
+
+        <div class="admin-nav-search">
+            <i class="fi fi-rr-search"></i>
+            <input type="text" placeholder="Search orders, products, or users...">
+        </div>
+
+        <div class="admin-nav-profile">
+            <div class="admin-user-popup-container">
+                <button class="admin-popup-btn" onclick="toggleAdminPopup()"><i class="fi fi-rs-user"></i></button>
+                <div class="admin-action-card" id="admin-popup-menu">
+                    <div class="admin-card-header">
+                        <div class="admin-popup-initials" id="popup-initials">AD</div>
+                        <div class="admin-profile-text">
+                            <h4 id="popup-admin-name">Admin</h4>
+                            <p>System Administrator</p>
+                        </div>
+                    </div>
+                    <div class="admin-account-links">
+                        <a href="admin-dashboard.html"><i class="fi fi-rr-apps"></i> Dashboard</a>
+                        <a href="admin-orders.html"><i class="fi fi-rr-shopping-cart"></i> Orders</a>
+                        <a href="admin-products.html"><i class="fi fi-rr-box-alt"></i> Products</a>
+                        <a href="admin-users.html"><i class="fi fi-rr-users"></i> Users</a>
+                        <a href="admin-messages.html"><i class="fi fi-rr-envelope"></i> Messages</a>
+                        <a href="admin-reports.html"><i class="fi fi-rr-document"></i> Reports</a>
+                    </div>
+                    <div class="admin-card-logout">
+                        <button onclick="logoutUser()" class="admin-logout-btn"><i class="fi fi-rs-sign-out-alt"></i>
+                            Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="admin-page-container reveal">
+        <div class="admin-dashboard-wrapper">
+
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar-profile">
+                    <div class="admin-img-container">
+                        <div class="admin-profile-initials" id="sidebar-initials">AD</div>
+                    </div>
+                    <h3 id="admin-name-display">Admin Name</h3>
+                    <p>System Administrator</p>
+                </div>
+
+                <nav class="admin-sidebar-nav">
+                    <a href="admin-dashboard.html" class="active"><i class="fi fi-rr-apps"></i> Dashboard</a>
+                    <a href="admin-orders.html"><i class="fi fi-rr-shopping-cart"></i> Orders</a>
+                    <a href="admin-products.html"><i class="fi fi-rr-box-alt"></i> Products</a>
+                    <a href="admin-users.html"><i class="fi fi-rr-users"></i> Users</a>
+                    <a href="admin-messages.html"><i class="fi fi-rr-envelope"></i> Messages</a>
+                    <a href="admin-reports.html"><i class="fi fi-rr-document"></i> Reports</a>
+                    <a href="#" onclick="logoutUser()" class="logout-link"><i class="fi fi-rs-sign-out-alt"></i>
+                        Logout</a>
+                </nav>
+            </aside>
+
+            <main class="admin-content">
+                <div class="content-header">
+                    <h2>Store Overview</h2>
+                    <p>Monitor real-time store performance and key business metrics.</p>
+                </div>
+
+                <div class="dashboard-stats-box">
+
+                    <div class="dashboard-card border-highlight">
+                        <div class="stat-text">
+                            <p>TOTAL SALES</p>
+                            <h3 id="stat-sales">₱ 0.00</h3>
+                            <div id="trend-sales"></div>
+                        </div>
+                        <i class="fi fi-rr-sack-dollar stat-icon"></i>
+                    </div>
+
+                    <div class="dashboard-card border-highlight">
+                        <div class="stat-text">
+                            <p>TOTAL USERS</p>
+                            <h3 id="stat-users">0</h3>
+                            <div id="trend-users"></div>
+                        </div>
+                        <i class="fi fi-rr-users stat-icon"></i>
+                    </div>
+
+                    <div class="dashboard-card border-highlight">
+                        <div class="stat-text">
+                            <p>TOTAL PRODUCTS</p>
+                            <h3 id="stat-products">0</h3>
+                            <div id="trend-products"></div>
+                        </div>
+                        <i class="fi fi-rr-box-alt stat-icon"></i>
+                    </div>
+
+                </div>
+
+                <div class="dashboard-charts-grid">
+                    <div class="dashboard-card graph-box">
+                        <h3>Monthly Sales Revenue</h3>
+                        <div class="twelve-month-chart" id="msr-chart"></div>
+                    </div>
+
+                    <div class="dashboard-card breakdown-box">
+                        <h3>Monthly Breakdown</h3>
+                        <div class="breakdown-scroll">
+                            <ul class="breakdown-list" id="mb-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-metrics-grid">
+                    <div class="dashboard-card category-box">
+                        <h3>Sales By Category</h3>
+                        <div class="donut-display">
+                            <div class="donut-chart"></div>
+                            <div class="donut-legend">
+                                <p><span class="dot men"></span> Men</p>
+                                <p><span class="dot women"></span> Women</p>
+                                <p><span class="dot kids"></span> Kids</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card top-products-box">
+                        <h3>Top Products by Sales</h3>
+                        <div class="top-list">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card" id="recent-transactions-card">
+                    <div class="table-header-flex">
+                        <h3>Recent Transactions</h3>
+                    </div>
+
+                    <div class="table-scroll-container">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 18%;">Order ID</th>
+                                    <th style="width: 24%;">Customer</th>
+                                    <th style="width: 22%;">Date</th>
+                                    <th style="width: 22%;">Status</th>
+                                    <th style="width: 14%;">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-orders-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script src="global.js"></script>
+    <script src="admin-dashboard.js"></script>
+</body>
+
+</html>

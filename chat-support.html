@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="account.css">
+    <link rel="stylesheet" href="chat-support.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="account-page-container reveal">
+        <div class="breadcrumb-section" style="max-width: var(--max-wide);">
+            <a href="homepage.html">Home</a> / <span class="current-page">Chat Support</span>
+        </div>
+
+        <div class="account-dashboard-wrapper">
+            <aside class="account-sidebar">
+                <div class="account-sidebar-profile">
+                    <div class="account-img-container">
+                        <div class="account-profile-initials" id="sidebar-initials"></div>
+                        <img id="sidebar-img" src="" style="display:none;" alt="Profile Picture">
+                    </div>
+                    <h3 id="sidebar-name">User Name</h3>
+                    <p id="sidebar-email">Email Address</p>
+                </div>
+                <nav class="account-sidebar-nav">
+                    <a href="account.html"><i class="fi fi-rr-settings"></i> Account Settings</a>
+                    <a href="address.html"><i class="fi fi-rr-map-marker"></i> Address Book</a>
+                    <a href="payment-method.html"><i class="fi fi-rr-credit-card"></i> Payment Methods</a>
+                    <a href="order-history.html"><i class="fi fi-rr-box"></i> Order History</a>
+                    <a href="notification.html"><i class="fi fi-rr-bell"></i> Notifications</a>
+                    <a href="chat-support.html" class="active"><i class="fi fi-rr-headset"></i> Chat Support</a>
+                    <button onclick="logoutUser()" class="account-sidebar-logout"><i
+                            class="fi fi-rs-sign-out-alt"></i>Logout</button>
+                </nav>
+            </aside>
+
+            <main class="account-content">
+                <div class="chat-header-row">
+                    <h2><span style="color: var(--brand-color); font-size: 28px; font-weight: 700;">PACE</span> Support
+                    </h2>
+                    <button class="clear-chat-btn" onclick="openDeleteChatModal()">
+                        <i class="fi fi-rs-trash"></i> Clear History
+                    </button>
+                </div>
+                <p class="account-subtitle">Need help? Chat with us or view your past inquiries.</p>
+
+                <div class="page-chat-container">
+
+                    <div id="page-transcript-box" class="page-transcript-box">
+                    </div>
+
+                    <div class="chat-faqs" id="page-faqs-container"
+                        style="border-top: 1px solid #eaeaea; background: #fff;">
+                        <button class="faq-chip" onclick="sendFAQMessage('Where is my order?')">Where is my
+                            order?</button>
+                        <button class="faq-chip" onclick="sendFAQMessage('Do you offer free shipping?')">Do you offer
+                            free shipping?</button>
+                        <button class="faq-chip" onclick="sendFAQMessage('What payment methods work?')">What payment
+                            methods work?</button>
+                        <button class="faq-chip" onclick="sendFAQMessage('How do I use the size guide?')">How do I use
+                            the size guide?</button>
+                        <button class="faq-chip" onclick="sendFAQMessage('How do I save shoes for later?')">How do I
+                            save shoes for later?</button>
+                        <button class="faq-chip" onclick="sendFAQMessage('Can I save multiple addresses?')">Can I save
+                            multiple addresses?</button>
+                    </div>
+
+                    <div class="page-chat-input-area" style="border-top: none;">
+                        <input type="text" id="page-chat-input" class="page-chat-input"
+                            placeholder="Type your message here..." onkeypress="handlePageChatEnter(event)">
+                        <button class="page-chat-btn" onclick="sendPageMessage()">
+                            <i class="fi fi-rr-paper-plane"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <dialog id="delete-chat-modal" class="account-dialog confirm-dialog">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon">
+                <i class="fi fi-rs-trash"></i>
+            </div>
+            <h3>Clear Chat History?</h3>
+            <p>Are you sure you want to delete your entire chat history?</p>
+            <div class="confirm-actions">
+                <button type="button" class="btn-cancel" onclick="closeDeleteChatModal()">CANCEL</button>
+                <button type="button" class="btn-confirm" onclick="executeClearChat()">DELETE</button>
+            </div>
+        </div>
+    </dialog>
+
+    <div id="footer-container"></div>
+
+    <script src="global.js"></script>
+    <script src="account.js"></script>
+    <script src="chat-support.js"></script>
+</body>
+
+</html>

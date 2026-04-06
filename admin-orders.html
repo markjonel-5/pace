@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <link rel="stylesheet" href="admin-orders.css">
+
+    <script>
+        fetch('Database/check-admin.php')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+
+                    window.location.replace("login.html");
+                }
+            })
+            .catch(error => {
+
+                window.location.replace("login.html");
+            });
+    </script>
+</head>
+
+<body>
+    <header class="admin-navbar-section">
+        <div class="admin-nav-logo">
+            <a href="admin-dashboard.html"><img src="Brand Image/pace logo orange.png" alt="PACE Logo"
+                    style="height: 35px; object-fit: contain; padding-top: 3px;"></a>
+        </div>
+
+        <div class="admin-nav-search">
+            <i class="fi fi-rr-search"></i>
+            <input type="text" placeholder="Search orders, products, or users...">
+        </div>
+
+        <div class="admin-nav-profile">
+            <div class="admin-user-popup-container">
+                <button class="admin-popup-btn" onclick="toggleAdminPopup()"><i class="fi fi-rs-user"></i></button>
+                <div class="admin-action-card" id="admin-popup-menu">
+                    <div class="admin-card-header">
+                        <div class="admin-popup-initials" id="popup-initials">AD</div>
+                        <div class="admin-profile-text">
+                            <h4 id="popup-admin-name">Admin</h4>
+                            <p>System Administrator</p>
+                        </div>
+                    </div>
+                    <div class="admin-account-links">
+                        <a href="admin-dashboard.html"><i class="fi fi-rr-apps"></i> Dashboard</a>
+                        <a href="admin-orders.html"><i class="fi fi-rr-shopping-cart"></i> Orders</a>
+                        <a href="admin-products.html"><i class="fi fi-rr-box-alt"></i> Products</a>
+                        <a href="admin-users.html"><i class="fi fi-rr-users"></i> Users</a>
+                        <a href="admin-messages.html"><i class="fi fi-rr-envelope"></i> Messages</a>
+                        <a href="admin-reports.html"><i class="fi fi-rr-document"></i> Reports</a>
+                    </div>
+                    <div class="admin-card-logout">
+                        <button onclick="logoutUser()" class="admin-logout-btn"><i class="fi fi-rs-sign-out-alt"></i>
+                            Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-page-container reveal">
+        <div class="admin-dashboard-wrapper">
+
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar-profile">
+                    <div class="admin-img-container">
+                        <div class="admin-profile-initials" id="sidebar-initials">AD</div>
+                    </div>
+                    <h3 id="admin-name-display">Admin Name</h3>
+                    <p>System Administrator</p>
+                </div>
+
+                <nav class="admin-sidebar-nav">
+                    <a href="admin-dashboard.html"><i class="fi fi-rr-apps"></i> Dashboard</a>
+                    <a href="admin-orders.html" class="active"><i class="fi fi-rr-shopping-cart"></i> Orders</a>
+                    <a href="admin-products.html"><i class="fi fi-rr-box-alt"></i> Products</a>
+                    <a href="admin-users.html"><i class="fi fi-rr-users"></i> Users</a>
+                    <a href="admin-messages.html"><i class="fi fi-rr-envelope"></i> Messages</a>
+                    <a href="admin-reports.html"><i class="fi fi-rr-document"></i> Reports</a>
+                    <a href="#" onclick="logoutUser()" class="logout-link"><i class="fi fi-rs-sign-out-alt"></i>
+                        Logout</a>
+                </nav>
+            </aside>
+
+            <main class="admin-content">
+                <div class="content-header">
+                    <h2>Order Management</h2>
+                    <p>Process transactions, update delivery statuses, and manage shipments.</p>
+                </div>
+
+                <div class="dashboard-stats-box" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="dashboard-card border-highlight order-stat-box active"
+                        onclick="filterOrders('All', this)">
+                        <div class="stat-text">
+                            <p>TOTAL ORDERS</p>
+                            <h3 id="stat-all-orders">0</h3>
+                        </div>
+                        <i class="fi fi-rr-shopping-cart stat-icon"></i>
+                    </div>
+
+                    <div class="dashboard-card order-stat-box" style="border-left: 4px solid #f39c12;" onclick="filterOrders('To Ship', this)">
+                        <div class="stat-text">
+                            <p>TO SHIP</p>
+                            <h3 id="stat-to-ship" style="color: #f39c12;">0</h3>
+                        </div>
+                        <i class="fi fi-rr-box stat-icon" style="color: #f39c12;"></i>
+                    </div>
+
+                    <div class="dashboard-card order-stat-box" style="border-left: 4px solid #3498db;"
+                        onclick="filterOrders('To Receive', this)">
+                        <div class="stat-text">
+                            <p>TO RECEIVE</p>
+                            <h3 id="stat-to-receive" style="color: #3498db;">0</h3>
+                        </div>
+                        <i class="fi fi-rr-truck-side stat-icon" style="color: #3498db;"></i>
+                    </div>
+
+                    <div class="dashboard-card order-stat-box" style="border-left: 4px solid #1b8f50;"
+                        onclick="filterOrders('Completed', this)">
+                        <div class="stat-text">
+                            <p>COMPLETED</p>
+                            <h3 id="stat-completed" style="color: #1b8f50;">0</h3>
+                        </div>
+                        <i class="fi fi-rr-check-circle stat-icon" style="color: #1b8f50;"></i>
+                    </div>
+                </div>
+
+                <div class="dashboard-table-grid">
+                    <div class="dashboard-card" id="orders-table-card">
+                        <div class="table-header-flex">
+                            <h3>Transaction List</h3>
+                            <div class="table-search-box">
+                                <i class="fi fi-rr-search"></i>
+                                <input type="text" id="orders-search-input" placeholder="Search name or order ID">
+                            </div>
+                        </div>
+
+                        <div class="table-scroll-container">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 14%;">Order ID</th>
+                                        <th style="width: 20%;">Customer</th>
+                                        <th style="width: 16%;">Date</th>
+                                        <th style="width: 16%;">Status</th>
+                                        <th style="width: 16%;">Total Amount</th>
+                                        <th style="width: 18%; text-align: right; padding-right: 45px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="order-details-overlay" onclick="closeOrderDetailsPanel()"></div>
+    <div id="order-details-panel">
+        <div class="od-header">
+            <h3>Order Details</h3>
+            <button class="od-close" onclick="closeOrderDetailsPanel()">&times;</button>
+        </div>
+        <div class="od-body" id="od-body-content">
+        </div>
+    </div>
+
+    <dialog id="ship-order-modal" class="account-dialog confirm-dialog">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon">
+                <i class="fi fi-rr-box-alt"></i>
+            </div>
+            <h3>Ship Order?</h3>
+            <p>Are you sure you want to mark this order as shipped? The customer will be notified.</p>
+            <div class="confirm-actions">
+                <button type="button" class="btn-cancel" onclick="closeShipModal()">CANCEL</button>
+                <button type="button" class="btn-confirm" onclick="executeShipOrder()">SHIP ORDER</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="ready-order-modal" class="account-dialog confirm-dialog">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon">
+                <i class="fi fi-rr-box-check"></i>
+            </div>
+            <h3>Order Packed?</h3>
+            <p>Are you sure this order is packed and ready? The customer will be notified to pick up their item at the
+                store.</p>
+            <div class="confirm-actions">
+                <button type="button" class="btn-cancel" onclick="closeReadyModal()">CANCEL</button>
+                <button type="button" class="btn-confirm" onclick="executeReadyOrder()">MARK READY</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="success-alert-modal" class="account-dialog confirm-dialog">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon" style="color: #1b8f50;"><i class="fi fi-rs-check-circle"></i></div>
+            <h3 id="success-alert-title">Success!</h3>
+            <p id="success-alert-message">Action completed successfully.</p>
+            <div class="confirm-actions" style="justify-content: center; width: 100%;">
+                <button type="button" class="btn-confirm" onclick="reloadAfterSuccess()" style="background-color: #1b8f50; border-color: #1b8f50; flex: 1;">OK</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script src="global.js"></script>
+    <script src="admin-orders.js"></script>
+    <script src="admin-dashboard.js"></script>
+</body>
+
+</html>

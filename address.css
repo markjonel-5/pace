@@ -1,0 +1,171 @@
+/* ADDRESS HEADER AND BUTTON */
+.address-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.add-address-btn {
+    background-color: var(--brand-color);
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+}
+
+.add-address-btn i {
+    padding-top: 4px;
+}
+
+.add-address-btn:hover {
+    background-color: var(--darkgray-text);
+}
+
+/* ADDRESS CARD START */
+#address-list-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.address-card {
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    padding: 25px;
+    position: relative;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.address-label-tag {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #f0f0f0;
+    color: var(--gray-text);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.address-card h4 {
+    color: var(--darkgray-text);
+    font-size: 18px;
+    margin-bottom: 10px;
+    padding-right: 60px;
+}
+
+.address-details {
+    color: var(--gray-text);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.address-phone {
+    font-size: 16px;
+    color: var(--darkgray-text);
+    font-weight: 600;
+    margin-top: 10px;
+    display: block;
+}
+
+.address-actions {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.addr-action-btn {
+    background: none;
+    border: 1px solid #d9534f;
+    font-size: 14px;
+    margin-bottom: -8px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: 0.3s;
+}
+
+.addr-action-btn i {
+    padding-top: 2px;
+}
+
+.btn-delete {
+    color: #d9534f;
+}
+
+.btn-delete:hover {
+    color: white;
+    background-color: #d9534f;
+    border: 1px solid #d9534f;
+}
+/* ADDRESS CARD END */
+
+/* EMPTY ADDRESSES START */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--gray-text);
+}
+
+.empty-state .map-icon {
+    font-size: 70px;
+    color: var(--brand-color);
+    display: block;
+}
+
+.empty-state h3 {
+    font-size: 22px;
+    color: var(--darkgray-text);
+    margin-bottom: 10px;
+}
+
+/* EMPTY ADDRESSES END */
+
+/* HOME AND WORK RADIO BUTTONS */
+.label-options {
+    display: flex;
+    gap: 10px;
+}
+
+.radio-label {
+    cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+    display: none;
+}
+
+.radio-btn {
+    display: inline-block;
+    padding: 10px 25px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-weight: 600;
+    color: var(--gray-text);
+    transition: 0.3s;
+}
+
+.radio-label input[type="radio"]:checked+.radio-btn {
+    border-color: var(--brand-color);
+    background-color: #FFF3EB;
+    color: var(--brand-color);
+}

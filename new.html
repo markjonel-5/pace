@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="shop.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="breadcrumb-section reveal">
+        <a href="homepage.html">Home /</a>
+        <a href="all-product.html">All Shoes /</a>
+        <span class="current-page">New Arrival</span>
+    </div>
+
+    <div class="product-header-wrapper reveal">
+
+        <div class="product-header">
+            <h1>New Arrival <span>(8)</span></h1>
+        </div>
+
+        <div class="sort-dropdown">
+            <button class="sort-btn">Sort by <i class="fi fi-rr-angle-small-down"></i></button>
+
+            <div class="sort-menu">
+                <button onclick="sortProducts('low-high')">Price: Low to High</button>
+                <button onclick="sortProducts('high-low')">Price: High to Low</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="product-section reveal" id="product-container"></div>
+
+    <div class="load-more-section">
+        <p id="load-count"></p>
+        <button id="load-btn" class="load-btn" onclick="loadMore()">LOAD MORE</button>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <script src="global.js"></script>
+    <script src="shop.js"></script>
+</body>
+
+</html>
