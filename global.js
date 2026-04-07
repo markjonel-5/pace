@@ -11,7 +11,7 @@ if (!favicon) {
 favicon.href = "Brand Image/pace favicon.png";
 
 // --- NEW GLOBAL STOCK HELPER ---
-window.getTotalStock = function(stockVal) {
+window.getTotalStock = function (stockVal) {
     if (typeof stockVal === 'number' || typeof stockVal === 'string') return parseInt(stockVal) || 0;
     if (typeof stockVal === 'object' && stockVal !== null) {
         return Object.values(stockVal).reduce((total, qty) => total + (parseInt(qty) || 0), 0);
@@ -19,59 +19,58 @@ window.getTotalStock = function(stockVal) {
     return 0;
 };
 
-// FETCH LIVE PRODUCTS FROM MYSQL
-function initDatabase() {
-    fetch('Database/fetch-products.php')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Silently update the browser's memory with LIVE database products!
-            localStorage.setItem('pace_products', JSON.stringify(data.products));
-        }
-    })
-    .catch(error => console.error("Database fetch error:", error));
+// --- NEW: SYNC CART & WISHLIST TO MYSQL ---
+window.syncCartToDatabase = function (email, cartArray) {
+    fetch('Database/update-account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_cart', email: email, cart: cartArray })
+    }).catch(err => console.error("Error syncing cart:", err));
+};
 
-    if (!localStorage.getItem('pace_orders')) {
-        localStorage.setItem('pace_orders', JSON.stringify([]));
-    }
-}
+window.syncWishlistToDatabase = function (email, wishlistArray) {
+    fetch('Database/update-account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_wishlist', email: email, wishlist: wishlistArray })
+    }).catch(err => console.error("Error syncing wishlist:", err));
+};
 
-// --- NEW GLOBAL USER DATA SYNC ---
-// This initializes arrays so Addresses, Payments, and Order History don't crash!
-function syncUserData() {
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser) return;
+// NOTIFICATION
+window.syncNotificationsToDatabase = function (email, notifArray) {
+    fetch('Database/update-account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_notifications', email: email, notifications: notifArray })
+    }).catch(err => console.error("Error syncing notifications:", err));
+};
 
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
+// CHAT HISTORY
+window.syncChatToDatabase = function (email, chatArray) {
+    fetch('Database/update-account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_chat', email: email, chat: chatArray })
+    }).catch(err => console.error("Error syncing chat:", err));
+};
 
-    if (userIndex === -1) {
-        currentUser.addresses = [];
-        currentUser.payments = [];
-        currentUser.orderHistory = [];
-        currentUser.cart = [];
-        currentUser.wishlist = [];
-        currentUser.notifications = [];
-        currentUser.chatHistory = []; // <--- ADD THIS HERE
-        users.push(currentUser);
-        
-        localStorage.setItem('pace_users', JSON.stringify(users));
-        localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-    } else {
-        let localUser = users[userIndex];
-        currentUser.addresses = localUser.addresses || [];
-        currentUser.payments = localUser.payments || [];
-        currentUser.orderHistory = localUser.orderHistory || [];
-        currentUser.cart = localUser.cart || [];
-        currentUser.wishlist = localUser.wishlist || [];
-        currentUser.notifications = localUser.notifications || [];
-        currentUser.chatHistory = localUser.chatHistory || []; // <--- AND ADD THIS HERE
-        
-        users[userIndex] = currentUser;
-        localStorage.setItem('pace_users', JSON.stringify(users));
-        localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-    }
-}
+// ADDRESS
+window.syncAddressesToDatabase = function (email, addressesArray) {
+    fetch('Database/update-account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_addresses', email: email, addresses: addressesArray })
+    }).catch(err => console.error("Error syncing addresses:", err));
+};
+
+// PAYMENT METHOD
+window.syncPaymentsToDatabase = function (email, paymentsArray) {
+    fetch('Database/update-account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_payments', email: email, payments: paymentsArray })
+    }).catch(err => console.error("Error syncing payments:", err));
+};
 
 
 // NAVBAR SCROLL HIDING
@@ -184,35 +183,33 @@ function renderUserMenu() {
     if (!container) return;
 
     try {
-        let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-
-        if (currentUser) {
-            // 1. Safely grab the names, handling both old and new database formats
-            let fName = currentUser.first_name || currentUser.firstName || 'User';
-            let lName = currentUser.last_name || currentUser.lastName || '';
+        if (window.currentUser) {
+            // Safely grab the names using both MySQL and local spellings!
+            let rawFName = window.currentUser.first_name || window.currentUser.firstName || window.currentUser.name || 'User';
+            let rawLName = window.currentUser.last_name || window.currentUser.lastName || '';
             
-            // 2. Force them to be strings so .charAt() never crashes
-            fName = String(fName);
-            lName = String(lName);
+            let fName = String(rawFName).trim();
+            let lName = String(rawLName).trim();
 
-            // 3. Safely get the initials
             const firstInitial = fName.length > 0 ? fName.charAt(0) : 'U';
             const lastInitial = lName.length > 0 ? lName.charAt(0) : '';
             const initials = (firstInitial + lastInitial).toUpperCase();
 
-            let profileImageHTML = currentUser.profilePic
-                ? `<img src="${currentUser.profilePic}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`
+            // --- FIX: Check for both spellings of the profile picture! ---
+            let savedPhoto = window.currentUser.profilePic || window.currentUser.profile_pic;
+
+            let profileImageHTML = savedPhoto
+                ? `<img src="${savedPhoto}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`
                 : `<div class="profile-initials">${initials}</div>`;
 
             container.innerHTML = `
                 <button class="user-popup-btn" onclick="toggleUserPopup()"><i class="fi fi-rs-user"></i></button>
-                
                 <div class="user-action-card" id="user-popup-menu">
                     <div class="card-profile-header" style="display: flex; gap: 15px; align-items: center;">
                         ${profileImageHTML}
                         <div class="profile-text">
                             <h4 style="margin-bottom: 2px;">Hi, ${fName}!</h4>
-                            <p>${currentUser.email || ''}</p>
+                            <p>${window.currentUser.email || ''}</p>
                         </div>
                     </div>
                     <div class="account-links">
@@ -229,6 +226,7 @@ function renderUserMenu() {
                 </div>
             `;
         } else {
+            // Guest UI stays exactly the same
             container.innerHTML = `
                 <button class="user-popup-btn" onclick="toggleUserPopup()"><i class="fi fi-rs-user"></i></button>
                 <div class="user-action-card" id="user-popup-menu">
@@ -246,22 +244,18 @@ function renderUserMenu() {
 }
 
 function logoutUser() {
-    
     fetch('Database/logout.php')
-    .then(response => response.json())
-    .then(data => {
-        
-        localStorage.removeItem('pace_current_user');
-        
-        window.scrollTo(0, 0);
-        window.location.href = 'homepage.html';
-    })
-    .catch(error => {
-        console.error("Logout Error:", error);
-
-        localStorage.removeItem('pace_current_user');
-        window.location.href = 'homepage.html';
-    });
+        .then(response => response.json())
+        .then(data => {
+            window.currentUser = null; // Clear live memory
+            window.scrollTo(0, 0);
+            window.location.href = 'homepage.html';
+        })
+        .catch(error => {
+            console.error("Logout Error:", error);
+            window.currentUser = null;
+            window.location.href = 'homepage.html';
+        });
 }
 
 function toggleUserPopup() {
@@ -281,63 +275,54 @@ window.addEventListener('click', function (event) {
 
 /* FETCH AND SAVE CART DATA (USER VS GUEST) FUNCTION START */
 function getCartData() {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (currentUser) {
-        return currentUser.cart || [];
+    if (window.currentUser) {
+        return window.currentUser.cart || [];
     } else {
-        return JSON.parse(localStorage.getItem('pace_guest_cart')) || [];
+        // Return from Live Memory instead of localStorage
+        return window.guestCart || [];
     }
 }
 
 function saveCartData(cart) {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (currentUser) {
-
-        currentUser.cart = cart;
-        localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-
-        let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-        let userIndex = users.findIndex(u => u.email === currentUser.email);
-        if (userIndex > -1) {
-            users[userIndex].cart = cart;
-            localStorage.setItem('pace_users', JSON.stringify(users));
-        }
+    if (window.currentUser) {
+        window.currentUser.cart = cart;
+        if (window.syncCartToDatabase) window.syncCartToDatabase(window.currentUser.email, cart);
     } else {
-        localStorage.setItem('pace_guest_cart', JSON.stringify(cart));
+        window.guestCart = cart;
+        // SYNC DIRECTLY TO SECURE PHP GUEST SESSION!
+        fetch('Database/update-guest-session.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'update_cart', cart: cart })
+        });
     }
-
-    renderCartPreview();
+    if (typeof renderCartPreview === 'function') renderCartPreview();
     if (typeof renderCartPage === 'function') renderCartPage();
 }
-/* FETCH AND SAVE CART DATA (USER VS GUEST) FUNCTION END */
 
-/* FETCH AND SAVE WISHLIST DATA (USER VS GUEST) FUNCTION START */
 function getWishlistData() {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (currentUser) {
-        return currentUser.wishlist || [];
+    if (window.currentUser) {
+        return window.currentUser.wishlist || [];
     } else {
-        return JSON.parse(localStorage.getItem('pace_guest_wishlist')) || [];
+        // Return from Live Memory instead of localStorage
+        return window.guestWishlist || [];
     }
 }
 
 function saveWishlistData(wishlist) {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (currentUser) {
-        currentUser.wishlist = wishlist;
-        localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-
-        let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-        let userIndex = users.findIndex(u => u.email === currentUser.email);
-        if (userIndex > -1) {
-            users[userIndex].wishlist = wishlist;
-            localStorage.setItem('pace_users', JSON.stringify(users));
-        }
+    if (window.currentUser) {
+        window.currentUser.wishlist = wishlist;
+        if (window.syncWishlistToDatabase) window.syncWishlistToDatabase(window.currentUser.email, wishlist);
     } else {
-        localStorage.setItem('pace_guest_wishlist', JSON.stringify(wishlist));
+        window.guestWishlist = wishlist;
+        // SYNC DIRECTLY TO SECURE PHP GUEST SESSION!
+        fetch('Database/update-guest-session.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'update_wishlist', wishlist: wishlist })
+        });
     }
-
-    renderWishlistPreview();
+    if (typeof renderWishlistPreview === 'function') renderWishlistPreview();
     if (typeof renderWishlistPage === 'function') renderWishlistPage();
 }
 /* FETCH AND SAVE WISHLIST DATA (USER VS GUEST) FUNCTION END */
@@ -425,20 +410,17 @@ function renderCartPreview() {
     });
 
     if (removedItems.length > 0) {
-        const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-        if (currentUser) {
-            currentUser.cart = validCart;
-            localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-            let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-            let userIndex = users.findIndex(u => u.email === currentUser.email);
-            if (userIndex > -1) {
-                users[userIndex].cart = validCart;
-                localStorage.setItem('pace_users', JSON.stringify(users));
-            }
+        if (window.currentUser) {
+            window.currentUser.cart = validCart;
+            if (window.syncCartToDatabase) window.syncCartToDatabase(window.currentUser.email, validCart);
         } else {
-            localStorage.setItem('pace_guest_cart', JSON.stringify(validCart));
+            window.guestCart = validCart;
+            fetch('Database/update-guest-session.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'update_cart', cart: validCart })
+            });
         }
-
         cart = validCart;
         if (typeof renderCartPage === 'function') renderCartPage();
     }
@@ -851,45 +833,35 @@ function appendMessageUI(className, text) {
 }
 
 function saveChatToDatabase(sender, text) {
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser) return;
-
-    if (!currentUser.chatHistory) currentUser.chatHistory = [];
+    if (!window.currentUser) return;
+    if (!window.currentUser.chatHistory) window.currentUser.chatHistory = [];
 
     const now = new Date();
     const timeString = now.toLocaleDateString() + ' at ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    currentUser.chatHistory.push({
+    window.currentUser.chatHistory.push({
         sender: sender,
         text: text,
         time: timeString,
         timestamp: Date.now(),
-        read: false // Mark as Unread initially
+        read: false
     });
 
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
-    if (userIndex > -1) {
-        users[userIndex].chatHistory = currentUser.chatHistory;
-        localStorage.setItem('pace_users', JSON.stringify(users));
-        localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
+    if (window.syncChatToDatabase) {
+        window.syncChatToDatabase(window.currentUser.email, window.currentUser.chatHistory);
     }
 }
 
 function loadChatHistory() {
     const messageBox = document.getElementById('chat-messages-box');
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-
     messageBox.innerHTML = '';
 
-    if (currentUser && currentUser.chatHistory && currentUser.chatHistory.length > 0) {
-        currentUser.chatHistory.forEach((msg, index) => {
+    if (window.currentUser && window.currentUser.chatHistory && window.currentUser.chatHistory.length > 0) {
+        window.currentUser.chatHistory.forEach((msg, index) => {
             const className = msg.sender === 'user' ? 'user-msg' : 'bot-msg';
             appendMessageUI(className, msg.text);
 
-            // USER "SEEN" INDICATOR LOGIC
-            // Kung ito ang pinaka-huling message at galing sa user at read na ng admin
-            if (index === currentUser.chatHistory.length - 1 && msg.sender === 'user' && msg.read) {
+            if (index === window.currentUser.chatHistory.length - 1 && msg.sender === 'user' && msg.read) {
                 const seenIndicator = document.createElement('div');
                 seenIndicator.style.cssText = "font-size: 10px; color: var(--gray-text); text-align: right; margin-top: -10px; margin-bottom: 10px; padding-right: 10px;";
                 seenIndicator.innerText = "Seen";
@@ -899,7 +871,7 @@ function loadChatHistory() {
         });
     } else {
         appendMessageUI('bot-msg', 'Hi there! Need help finding your perfect pair of shoes? 👟');
-        if (currentUser) saveChatToDatabase('bot', 'Hi there! Need help finding your perfect pair of shoes? 👟');
+        if (window.currentUser) saveChatToDatabase('bot', 'Hi there! Need help finding your perfect pair of shoes? 👟');
     }
 }
 // GLOBAL FLOATING CHAT WIDGET FUNCTION END 
@@ -1114,19 +1086,84 @@ function renderSearchPanelProducts(query) {
 }
 // GLOBAL SEARCH PANEL FUNCTIONS END
 
-// INITIALIZE ON PAGE LOAD
+// FETCH LIVE PRODUCTS FROM MYSQL (WITH CACHE BUSTER)
+function initDatabase() {
+    fetch('Database/fetch-products.php?nocache=' + new Date().getTime())
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            localStorage.setItem('pace_products', JSON.stringify(data.products));
+            
+            if (typeof renderProducts === 'function') {
+                const path = window.location.pathname.toLowerCase();
+                if (path.includes('homepage') || path === '/' || path.endsWith('/pace/')) {
+                    renderProducts('ALL', 8);
+                } else if (typeof activeCategory !== 'undefined') {
+                    renderProducts(activeCategory);
+                } else {
+                    renderProducts('ALL');
+                }
+            }
+            
+            if (typeof renderCartPreview === 'function') renderCartPreview();
+            if (typeof renderWishlistPreview === 'function') renderWishlistPreview();
+            if (typeof renderCartPage === 'function') renderCartPage();
+            if (typeof renderWishlistPage === 'function') renderWishlistPage();
+        }
+    })
+    .catch(error => console.error("Database fetch error:", error));
+}
+
+// --- NEW: CREATE GLOBAL LIVE MEMORY VARIABLES ---
+window.currentUser = null; 
+window.guestCart = [];
+window.guestWishlist = [];
+
+// INITIALIZE ON PAGE LOAD (THE SYNCHRONIZED SESSION BRIDGE)
 window.addEventListener('DOMContentLoaded', () => {
-    syncUserData();
-    initDatabase();
-    renderNavbar();
-    renderFooter();
-    buildCartPanel();
-    buildWishlistPanel();
-    buildSearchPanel();
-    renderUserMenu();
-    renderCartPreview();
-    renderWishlistPreview();
-    buildGlobalChat();
+    
+    // 1. FIRST, SECURE THE SESSION (WITH CACHE BUSTER!)
+    fetch('Database/fetch-session.php?nocache=' + new Date().getTime())
+        .then(res => res.text()) 
+        .then(text => {
+            try {
+                const data = JSON.parse(text);
+                if (data.success && data.user) {
+                    window.currentUser = data.user;
+                    window.guestCart = []; 
+                    window.guestWishlist = [];
+                } else {
+                    window.currentUser = null;
+                    window.guestCart = data.guest_cart || [];
+                    window.guestWishlist = data.guest_wishlist || [];
+                }
+            } catch (e) {
+                console.error("Session parse error:", text);
+            }
+
+            // 2. NOW FETCH PRODUCTS
+            initDatabase(); 
+
+            // 3. RENDER THE PAGE UI
+            renderNavbar();
+            renderFooter();
+            buildCartPanel();
+            buildWishlistPanel();
+            buildSearchPanel();
+            renderUserMenu();
+            buildGlobalChat();
+            
+            // Re-render specific dynamic page content
+            if (typeof loadAccountData === 'function') loadAccountData();
+            if (typeof loadAddressData === 'function') loadAddressData();
+            if (typeof loadPaymentData === 'function') loadPaymentData();
+        })
+        .catch(err => {
+            console.error("Network error:", err);
+            initDatabase(); 
+            renderNavbar();
+            renderFooter();
+        });
 
     const successModal = document.getElementById('success-modal');
     if (successModal) {

@@ -1,26 +1,36 @@
 let currentFilterStatus = 'All';
 let selectedUserEmail = null;
+window.adminUsersData = [];
 
 window.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('users-search-input');
-    
     if (searchInput) {
         const urlParams = new URLSearchParams(window.location.search);
         const searchParam = urlParams.get('search');
         if (searchParam) {
-            searchInput.value = searchParam; // Auto-fill search bar
+            searchInput.value = searchParam;
         }
-        searchInput.addEventListener('input', loadUsersTable);
+        searchInput.addEventListener('input', renderUsersTable);
     }
-    
-    // Load table (it will automatically detect the filled search bar)
-    loadUsersTable();
+    fetchUsersFromDatabase();
 });
 
-function loadUsersTable() {
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
+function fetchUsersFromDatabase() {
+    fetch('Database/fetch-users.php')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.adminUsersData = data.users;
+                renderUsersTable();
+            } else {
+                window.location.href = "login.html"; // Boot non-admins
+            }
+        })
+        .catch(err => console.error(err));
+}
 
-    users.reverse();
+function renderUsersTable() {
+    let users = [...window.adminUsersData];
 
     users = users.map(u => {
         if (!u.status) u.status = 'Active';
@@ -40,8 +50,8 @@ function loadUsersTable() {
         thirtyDaysAgo.setDate(today.getDate() - 30);
 
         filteredUsers = filteredUsers.filter(u => {
-            if (u.registeredDate && u.registeredDate !== 'Unknown') {
-                const regDate = new Date(u.registeredDate);
+            if (u.registered_date && u.registered_date !== 'Unknown') {
+                const regDate = new Date(u.registered_date);
                 return regDate >= thirtyDaysAgo && regDate <= today;
             }
             return false;
@@ -56,7 +66,6 @@ function loadUsersTable() {
 
     if (searchVal.trim() !== '') {
         filteredUsers = filteredUsers.filter(u => {
-            // FIX: Safely grab names for searching
             let fName = String(u.first_name || u.firstName || '');
             let lName = String(u.last_name || u.lastName || '');
             const name = `${fName} ${lName}`.toLowerCase();
@@ -72,7 +81,6 @@ function loadUsersTable() {
     }
 
     tableBody.innerHTML = filteredUsers.map(u => {
-        // FIX: Safely grab names to prevent charAt crash!
         let fName = String(u.first_name || u.firstName || 'User');
         let lName = String(u.last_name || u.lastName || '');
         const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
@@ -121,9 +129,8 @@ function renderUserStats(users) {
         if (u.status === 'Active') active++;
         else if (u.status === 'Blocked') blocked++;
         
-        
-        if (u.registeredDate && u.registeredDate !== 'Unknown') {
-            const regDate = new Date(u.registeredDate);
+        if (u.registered_date && u.registered_date !== 'Unknown') {
+            const regDate = new Date(u.registered_date);
             if (regDate >= thirtyDaysAgo && regDate <= today) {
                 newUsers++;
             }
@@ -140,12 +147,11 @@ window.filterUsers = function (status, element) {
     document.querySelectorAll('.order-stat-box').forEach(box => box.classList.remove('active'));
     element.classList.add('active');
     currentFilterStatus = status;
-    loadUsersTable();
+    renderUsersTable();
 };
 
 window.viewUserDetails = function (email) {
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let u = users.find(user => user.email === email);
+    let u = window.adminUsersData.find(user => user.email === email);
     if (!u) return;
 
     if (!u.status) u.status = 'Active';
@@ -162,7 +168,6 @@ window.viewUserDetails = function (email) {
     let statusClass = 'badge-active';
     if (u.status === 'Blocked') statusClass = 'badge-blocked';
 
-    // FIX: Safely grab the date from the database
     let regDateStr = u.registered_date || u.registeredDate || u.dateCreated || 'Unknown';
 
     let profilePicHTML = u.profilePic 
@@ -220,10 +225,8 @@ window.viewUserDetails = function (email) {
     const blockBtnText = u.status === 'Blocked' ? 'Unblock' : 'Block';
     const blockIcon = u.status === 'Blocked' ? 'fi-rr-check-circle' : 'fi-rr-ban';
 
-    // FIX: Bulletproof Super Admin Logic mapping to Database!
     let isTargetSuper = u.isSuperAdmin || String(u.is_super_admin) === '1';
-    let loggedInAdmin = JSON.parse(localStorage.getItem('pace_current_user'));
-    let loggedInIsSuper = loggedInAdmin && (loggedInAdmin.isSuperAdmin || String(loggedInAdmin.is_super_admin) === '1');
+    let loggedInIsSuper = window.currentUser && (window.currentUser.isSuperAdmin || String(window.currentUser.is_super_admin) === '1');
     let actionButtonsHTML = '';
 
     if (isTargetSuper) {
@@ -264,7 +267,6 @@ window.closeUserPanel = function () {
     setTimeout(() => { document.body.style.overflow = ''; }, 300);
 };
 
-
 window.openRoleModal = function (email, name) {
     selectedUserEmail = email;
     document.getElementById('role-user-name').innerText = name;
@@ -277,24 +279,18 @@ window.closeRoleModal = function () {
 };
 
 window.executeRoleChange = function () {
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === selectedUserEmail);
-    
-    if (userIndex > -1) {
-        let newRole = users[userIndex].role === 'admin' ? 'user' : 'admin';
-        let newStatus = newRole === 'admin' ? 'Active' : users[userIndex].status;
+    let u = window.adminUsersData.find(user => user.email === selectedUserEmail);
+    if (u) {
+        let newRole = u.role === 'admin' ? 'user' : 'admin';
+        let newStatus = newRole === 'admin' ? 'Active' : u.status;
 
-        // Tell the Database!
         fetch('Database/update-user-account.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'role', email: selectedUserEmail, role: newRole, status: newStatus })
         }).then(res => res.json()).then(data => {
             if (data.success) {
-                users[userIndex].role = newRole;
-                users[userIndex].status = newStatus;
-                localStorage.setItem('pace_users', JSON.stringify(users));
-                loadUsersTable();
+                fetchUsersFromDatabase(); // Refresh live data
                 closeRoleModal();
                 closeUserPanel();
             } else {
@@ -316,17 +312,13 @@ window.closeDeleteUserModal = function () {
 };
 
 window.executeDeleteUser = function () {
-    // Tell the Database!
     fetch('Database/update-user-account.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', email: selectedUserEmail })
     }).then(res => res.json()).then(data => {
         if (data.success) {
-            let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-            users = users.filter(u => u.email !== selectedUserEmail);
-            localStorage.setItem('pace_users', JSON.stringify(users));
-            loadUsersTable();
+            fetchUsersFromDatabase();
             closeDeleteUserModal();
             closeUserPanel();
         } else {
@@ -350,22 +342,17 @@ window.closeBlockModal = function () {
 };
 
 window.executeBlockToggle = function () {
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === selectedUserEmail);
-    
-    if (userIndex > -1) {
-        let newStatus = users[userIndex].status === 'Blocked' ? 'Active' : 'Blocked';
+    let u = window.adminUsersData.find(user => user.email === selectedUserEmail);
+    if (u) {
+        let newStatus = u.status === 'Blocked' ? 'Active' : 'Blocked';
 
-        // Tell the Database!
         fetch('Database/update-user-account.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'status', email: selectedUserEmail, status: newStatus })
         }).then(res => res.json()).then(data => {
             if (data.success) {
-                users[userIndex].status = newStatus;
-                localStorage.setItem('pace_users', JSON.stringify(users));
-                loadUsersTable();
+                fetchUsersFromDatabase();
                 closeBlockModal();
                 closeUserPanel();
             } else {

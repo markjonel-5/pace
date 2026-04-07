@@ -2,8 +2,8 @@
 header('Content-Type: application/json');
 require 'pace-database.php';
 
-// Bulletproof check to avoid crashing if the table is empty or missing
-$sql = "SELECT * FROM orders ORDER BY order_date DESC";
+// FIX: Fetch them in their natural insertion order
+$sql = "SELECT * FROM orders";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -14,7 +14,6 @@ if (!$result) {
 $orders = [];
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
-        // Package it exactly how your JavaScript expects it!
         $orders[] = [
             'id' => $row['id'],
             'customerEmail' => $row['customer_email'],
@@ -29,6 +28,9 @@ if ($result->num_rows > 0) {
         ];
     }
 }
+
+// FIX: Flip the entire array upside down so the absolute newest is at the top!
+$orders = array_reverse($orders);
 
 echo json_encode(['success' => true, 'orders' => $orders]);
 $conn->close();

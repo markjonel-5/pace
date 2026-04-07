@@ -7,7 +7,7 @@ function getSelectedItems(user) {
     const buyNowItem = JSON.parse(sessionStorage.getItem('pace_buy_now_item'));
     if (buyNowItem) return [buyNowItem];
     
-    const cart = user ? user.cart || [] : JSON.parse(localStorage.getItem('pace_guest_cart')) || [];
+    const cart = user ? user.cart || [] : (window.guestCart || []);
     return cart.filter(item => item.selected !== false);
 }
 
@@ -23,17 +23,18 @@ function calculateSubtotal(items) {
 // 2. INITIALIZATION (RUNS ON PAGE LOAD)
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-
-    // Setup UI
-    loadCheckoutData(currentUser);
-    setupDeliveryToggle();
-    setupInputFormatting();
-    
-    // Setup Forms & Modals
-    setupModalCleanup();
-    setupPaymentForm(currentUser);
-    setupAddressForm(currentUser);
+    // Tiny delay to ensure global.js has populated window.currentUser
+    setTimeout(() => {
+        // Setup UI
+        loadCheckoutData(window.currentUser);
+        setupDeliveryToggle();
+        setupInputFormatting();
+        
+        // Setup Forms & Modals
+        setupModalCleanup();
+        setupPaymentForm();
+        setupAddressForm();
+    }, 100);
 });
 
 // ==========================================
@@ -65,7 +66,6 @@ function loadCheckoutData(user) {
     // Render Contact Area
     const contactContainer = document.getElementById('checkout-contact-content');
     if (user) {
-        // FIX: Safely grab the database names!
         let fName = user.first_name || user.firstName || 'Customer';
         let lName = user.last_name || user.lastName || '';
 
@@ -74,8 +74,8 @@ function loadCheckoutData(user) {
                 <label>Email Address (For Order Confirmation)</label>
                 <input type="email" id="checkout-email" class="account-input-field" value="${user.email}" readonly style="background-color: #f5f5f5; color: var(--gray-text); cursor: not-allowed; border-color: #eaeaea;">
             </div>
-            <input type="hidden" id="checkout-fname" value="${user.firstName}">
-            <input type="hidden" id="checkout-lname" value="${user.lastName || ''}">
+            <input type="hidden" id="checkout-fname" value="${fName}">
+            <input type="hidden" id="checkout-lname" value="${lName}">
         `;
     } else {
         contactContainer.innerHTML = `
@@ -256,8 +256,7 @@ function loadCheckoutData(user) {
 }
 
 function updateOrderSummary() {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    const selectedItems = getSelectedItems(currentUser);
+    const selectedItems = getSelectedItems(window.currentUser);
     const subtotal = calculateSubtotal(selectedItems);
 
     const deliveryRadio = document.querySelector('input[name="checkout-delivery-speed"]:checked');
@@ -427,8 +426,7 @@ function setupModalCleanup() {
             if (phoneWrapper) phoneWrapper.classList.remove('input-error');
             if (phoneError) phoneError.classList.add('error-hidden');
 
-            const updatedUser = JSON.parse(localStorage.getItem('pace_current_user'));
-            loadCheckoutData(updatedUser);
+            loadCheckoutData(window.currentUser);
             const defaultDelivery = document.querySelector('input[name="checkout-delivery-speed"]:checked');
             if (defaultDelivery) defaultDelivery.dispatchEvent(new Event('change'));
         });
@@ -464,7 +462,7 @@ function setupModalCleanup() {
 // ==========================================
 // 6. FORM HANDLERS (PAYMENT & ADDRESS)
 // ==========================================
-function setupPaymentForm(currentUser) {
+function setupPaymentForm() {
     const pmRadios = document.querySelectorAll('input[name="pm-type"]');
     pmRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
@@ -603,19 +601,11 @@ function setupPaymentForm(currentUser) {
                 }
 
                 let newPm = { id: 'PM-' + Date.now(), type: selectedType, data: paymentData };
-                let user = JSON.parse(localStorage.getItem('pace_current_user'));
                 
-                if (user) {
-                    if (!user.payments) user.payments = [];
-                    user.payments.push(newPm);
-                    localStorage.setItem('pace_current_user', JSON.stringify(user));
-
-                    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-                    let userIndex = users.findIndex(u => u.email === user.email);
-                    if (userIndex > -1) {
-                        users[userIndex].payments = user.payments;
-                        localStorage.setItem('pace_users', JSON.stringify(users));
-                    }
+                if (window.currentUser) {
+                    if (!window.currentUser.payments) window.currentUser.payments = [];
+                    window.currentUser.payments.push(newPm);
+                    if (window.syncPaymentsToDatabase) window.syncPaymentsToDatabase(window.currentUser.email, window.currentUser.payments);
                 } else {
                     temporaryGuestPayments.push(newPm);
                 }
@@ -628,7 +618,7 @@ function setupPaymentForm(currentUser) {
                 }
 
                 window.closeAccountModal('payment-modal');
-                loadCheckoutData(JSON.parse(localStorage.getItem('pace_current_user')));
+                loadCheckoutData(window.currentUser);
                 const defaultDelivery = document.querySelector('input[name="checkout-delivery-speed"]:checked');
                 if (defaultDelivery) defaultDelivery.dispatchEvent(new Event('change'));
             });
@@ -636,7 +626,7 @@ function setupPaymentForm(currentUser) {
     }
 }
 
-function setupAddressForm(currentUser) {
+function setupAddressForm() {
     const addressForm = document.getElementById('form-new-address');
     if (addressForm) {
         addressForm.addEventListener('submit', (e) => {
@@ -672,26 +662,15 @@ function setupAddressForm(currentUser) {
                 label: document.querySelector('input[name="addr-label"]:checked').value
             };
 
-            let user = JSON.parse(localStorage.getItem('pace_current_user'));
-            let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-            if (!user) return; // Only logged-in users use this form
-            
-            let userIndex = users.findIndex(u => u.email === user.email);
-
-            if (userIndex > -1) {
-                if (!user.addresses) user.addresses = [];
-                if (!users[userIndex].addresses) users[userIndex].addresses = [];
-
-                user.addresses.push(newAddress);
-                users[userIndex].addresses.push(newAddress);
-
-                localStorage.setItem('pace_users', JSON.stringify(users));
-                localStorage.setItem('pace_current_user', JSON.stringify(user));
+            if (window.currentUser) {
+                if (!window.currentUser.addresses) window.currentUser.addresses = [];
+                window.currentUser.addresses.push(newAddress);
+                if (window.syncAddressesToDatabase) window.syncAddressesToDatabase(window.currentUser.email, window.currentUser.addresses);
 
                 addressForm.reset();
                 window.closeAccountModal('address-modal');
                 
-                loadCheckoutData(user);
+                loadCheckoutData(window.currentUser);
                 const defaultDelivery = document.querySelector('input[name="checkout-delivery-speed"]:checked');
                 if (defaultDelivery) defaultDelivery.dispatchEvent(new Event('change'));
             }
@@ -703,7 +682,7 @@ function setupAddressForm(currentUser) {
 // 7. CHECKOUT SUBMISSION LOGIC (LIVE DATABASE)
 // ==========================================
 function placeOrder() {
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
+    let currentUser = window.currentUser;
     let hasError = false;
 
     // Loading State
@@ -904,7 +883,7 @@ function placeOrder() {
                 payment: paymentMethod
             };
 
-            // Update user's frontend view (cart, notifications, history)
+            // Update user's frontend view and MySQL (cart, notifications, history)
             if (currentUser) {
                 if (!currentUser.orderHistory) currentUser.orderHistory = [];
                 if (!currentUser.notifications) currentUser.notifications = [];
@@ -922,20 +901,24 @@ function placeOrder() {
                     currentUser.cart = currentUser.cart.filter(item => item.selected === false);
                 }
 
-                let users = JSON.parse(localStorage.getItem('pace_users'));
-                if (users) {
-                    let userIndex = users.findIndex(u => u.email === currentUser.email);
-                    if (userIndex !== -1) {
-                        users[userIndex] = currentUser;
-                        localStorage.setItem('pace_users', JSON.stringify(users));
-                    }
-                }
-                localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
+                // --- SYNC LIVE TO MYSQL ---
+                if (window.syncCartToDatabase) window.syncCartToDatabase(currentUser.email, currentUser.cart);
+                if (window.syncNotificationsToDatabase) window.syncNotificationsToDatabase(currentUser.email, currentUser.notifications);
+                fetch('Database/update-account.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'update_order_history', email: currentUser.email, orderHistory: currentUser.orderHistory })
+                });
+
             } else {
+                // Guests only use localStorage for their temporary cart
                 if (!buyNowItem) {
-                    let guestCart = JSON.parse(localStorage.getItem('pace_guest_cart')) || [];
-                    guestCart = guestCart.filter(item => item.selected === false);
-                    localStorage.setItem('pace_guest_cart', JSON.stringify(guestCart));
+                    window.guestCart = (window.guestCart || []).filter(item => item.selected === false);
+                    fetch('Database/update-guest-session.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'update_cart', cart: window.guestCart })
+                    });
                 }
             }
 

@@ -1,32 +1,49 @@
+window.dashboardData = { users: [], products: [], orders: [] };
+
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. SECURITY CHECK & INITIALS
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser || currentUser.role !== 'admin') {
-        window.location.href = "login.html";
-        return;
-    }
+    // 1. SECURITY CHECK & DATA LOAD
+    fetch('Database/fetch-session.php?nocache=' + new Date().getTime())
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success || data.user.role !== 'admin') {
+                window.location.href = "login.html";
+                return;
+            }
+            window.currentUser = data.user;
 
-    let fName = String(currentUser.first_name || currentUser.firstName || 'Admin');
-    let lName = String(currentUser.last_name || currentUser.lastName || '');
-    const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
+            let fName = String(window.currentUser.first_name || window.currentUser.firstName || 'Admin');
+            let lName = String(window.currentUser.last_name || window.currentUser.lastName || '');
+            const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
 
-    document.getElementById('sidebar-initials').innerText = initials;
-    document.getElementById('admin-name-display').innerText = `${fName} ${lName}`.trim();
+            document.getElementById('sidebar-initials').innerText = initials;
+            document.getElementById('admin-name-display').innerText = `${fName} ${lName}`.trim();
 
-    const popupName = document.getElementById('popup-admin-name');
-    const popupInitials = document.getElementById('popup-initials');
-    if (popupName) popupName.innerText = `${fName} ${lName}`.trim();
-    if (popupInitials) popupInitials.innerText = initials;
+            const popupName = document.getElementById('popup-admin-name');
+            const popupInitials = document.getElementById('popup-initials');
+            if (popupName) popupName.innerText = `${fName} ${lName}`.trim();
+            if (popupInitials) popupInitials.innerText = initials;
 
+            fetchDashboardData();
+        });
+        
+    setupGlobalSearch();
+});
+
+function fetchDashboardData() {
     // 2. FETCH LIVE DATA FROM MYSQL!
-    fetch('Database/fetch-dashboard.php')
+    fetch('Database/fetch-dashboard.php?nocache=' + new Date().getTime())
     .then(res => res.json())
     .then(data => {
         if (!data.success) return;
 
         let users = data.data.users;
         let products = data.data.products;
-        let orders = data.data.orders;
+        
+        // --- FIX: REVERSE THE ORDERS SO THE NEWEST TRANSACTIONS ARE AT THE TOP! ---
+        let orders = [...data.data.orders].reverse();
+
+        // Save to live memory for the Search Bar
+        window.dashboardData = { users, products, orders };
 
         // 3. COMPUTE STATS & CATEGORIES
         const now = new Date();
@@ -39,8 +56,9 @@ window.addEventListener('DOMContentLoaded', () => {
         users.forEach(u => {
             if (u.role === 'user') {
                 totalUsers++;
-                if (u.registeredDate && u.registeredDate !== 'Unknown') {
-                    let regDate = new Date(u.registeredDate);
+                let regDateStr = u.registered_date || u.registeredDate;
+                if (regDateStr && regDateStr !== 'Unknown') {
+                    let regDate = new Date(regDateStr);
                     if (!isNaN(regDate)) {
                         if (regDate.getMonth() === currentMonth && regDate.getFullYear() === currentYear) thisMonthUsers++;
                         else if (regDate.getMonth() === prevMonth && regDate.getFullYear() === prevYear) lastMonthUsers++;
@@ -146,7 +164,6 @@ window.addEventListener('DOMContentLoaded', () => {
         const donutLegend = document.querySelector('.donut-legend');
         const totalCategoryQty = menSalesQty + womenSalesQty + kidsSalesQty;
 
-        // FIX: Check if the Donut Chart actually exists on this page before styling it!
         if (donutChart && donutLegend) {
             if (totalCategoryQty === 0) {
                 donutChart.style.background = '#e0e0e0';
@@ -165,6 +182,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 `;
             }
         }
+
         // 7. GENERATE TOP PRODUCTS
         const topListContainer = document.querySelector('.top-list');
         let sortedProducts = Object.keys(productSalesMap).map(name => ({ name: name, qty: productSalesMap[name] })).sort((a, b) => b.qty - a.qty);
@@ -179,10 +197,10 @@ window.addEventListener('DOMContentLoaded', () => {
             `).join('');
         }
 
-        // 8. POPULATE RECENT TRANSACTIONS
+        // 8. POPULATE RECENT TRANSACTIONS (Always newest first!)
         const tableBody = document.getElementById('recent-orders-body');
         function renderDashboardTable(searchQuery = '') {
-            let filteredOrders = [...orders].slice(0, 50); // Get recent 50
+            let filteredOrders = orders.slice(0, 50); // Get recent 50
             
             if (searchQuery.trim() !== '') {
                 const lowerQuery = searchQuery.toLowerCase();
@@ -232,7 +250,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     })
     .catch(err => console.error('Error fetching dashboard data:', err));
-});
+}
 
 function showTooltip(event, value) {
     const tooltip = document.getElementById('chart-tooltip');
@@ -250,65 +268,15 @@ function hideTooltip() {
 // SYNC ORDER STATUS BETWEEN ADMIN AND USER
 // ==========================================
 window.updateOrderStatus = function (orderId, newStatus) {
-
-    // 1. UPDATE THE ADMIN DATABASE (pace_orders)
-    let allOrders = JSON.parse(localStorage.getItem('pace_orders')) || [];
-    let adminOrderIndex = allOrders.findIndex(o => o.id === orderId);
-
-    if (adminOrderIndex > -1) {
-        allOrders[adminOrderIndex].status = newStatus;
-        localStorage.setItem('pace_orders', JSON.stringify(allOrders));
-    }
-
-    // 2. UPDATE THE USER DATABASE (pace_users)
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userFound = false;
-
-    // Loop through all users to find who owns this order
-    for (let i = 0; i < users.length; i++) {
-        if (users[i].orderHistory) {
-            let userOrderIndex = users[i].orderHistory.findIndex(o => o.id === orderId);
-
-            if (userOrderIndex > -1) {
-                // Update the status in the user's history
-                users[i].orderHistory[userOrderIndex].status = newStatus;
-
-                // BONUS: Send the user a notification about the update!
-                if (!users[i].notifications) users[i].notifications = [];
-                const notifDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                users[i].notifications.unshift({
-                    id: 'NOTIF-' + Date.now(),
-                    title: 'Order Status Update',
-                    message: `Your order ${orderId} has been updated to: ${newStatus}.`,
-                    date: notifDate,
-                    read: false
-                });
-
-                userFound = true;
-                break; // Stop searching once we find the user
-            }
-        }
-    }
-
-    if (userFound) {
-        // Save the updated users array
-        localStorage.setItem('pace_users', JSON.stringify(users));
-
-        // If an admin is testing their own account, update current_user too so they don't get logged out
-        let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-        if (currentUser) {
-            let updatedCurrentUser = users.find(u => u.email === currentUser.email);
-            if (updatedCurrentUser) {
-                localStorage.setItem('pace_current_user', JSON.stringify(updatedCurrentUser));
-            }
-        }
-    }
-
-    // 3. REFRESH THE PAGE TO UPDATE CHARTS AND REVENUE
-    // Give localStorage a millisecond to save, then reload to update the dashboard math
-    setTimeout(() => {
-        window.location.reload();
-    }, 100);
+    // FIX: Removed localStorage rewrites! Now it just securely tells MySQL to update the order.
+    fetch('Database/update-order-status.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId, status: newStatus, messageType: 'status_update' })
+    }).then(() => {
+        // Give the database a millisecond to save, then reload to update the dashboard math
+        setTimeout(() => { window.location.reload(); }, 100);
+    });
 };
 
 // NEW: ADMIN NAVBAR POPUP TOGGLE FUNCTIONS
@@ -327,18 +295,16 @@ window.addEventListener('click', function (event) {
 // ==========================================
 // GLOBAL ADMIN SEARCH LOGIC
 // ==========================================
-window.addEventListener('DOMContentLoaded', () => {
+function setupGlobalSearch() {
     const searchInput = document.querySelector('.admin-nav-search input');
     const searchContainer = document.querySelector('.admin-nav-search');
 
     if (searchInput && searchContainer) {
         
-        // Create the dropdown element
         const dropdown = document.createElement('div');
         dropdown.className = 'global-search-dropdown';
         searchContainer.appendChild(dropdown);
 
-        // Listen for typing
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase().trim();
             
@@ -347,28 +313,27 @@ window.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Fetch latest data
-            const users = JSON.parse(localStorage.getItem('pace_users')) || [];
-            const products = JSON.parse(localStorage.getItem('pace_products')) || [];
-            const orders = JSON.parse(localStorage.getItem('pace_orders')) || [];
+            // FIX: Pull directly from Live Memory instead of localStorage!
+            const users = window.dashboardData.users || [];
+            const products = window.dashboardData.products || [];
+            const orders = window.dashboardData.orders || [];
 
-            // Filter the data (Top 3 matches per category)
             const matchedProducts = products.filter(p => 
                 p.name.toLowerCase().includes(query) || 
-                p.id.toLowerCase().includes(query)
+                String(p.id).toLowerCase().includes(query)
             ).slice(0, 3);
 
             const matchedOrders = orders.filter(o => 
-                o.id.toLowerCase().includes(query) || 
-                o.customerName.toLowerCase().includes(query)
+                String(o.id).toLowerCase().includes(query) || 
+                (o.customerName || '').toLowerCase().includes(query)
             ).slice(0, 3);
 
-            const matchedUsers = users.filter(u => 
-                `${u.firstName} ${u.lastName || ''}`.toLowerCase().includes(query) || 
-                u.email.toLowerCase().includes(query)
-            ).slice(0, 3);
+            const matchedUsers = users.filter(u => {
+                let fName = String(u.first_name || u.firstName || '');
+                let lName = String(u.last_name || u.lastName || '');
+                return `${fName} ${lName}`.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
+            }).slice(0, 3);
 
-            // Build Dropdown HTML
             let html = '';
 
             if (matchedProducts.length > 0) {
@@ -396,10 +361,12 @@ window.addEventListener('DOMContentLoaded', () => {
             if (matchedUsers.length > 0) {
                 html += `<div class="search-category">Users</div>`;
                 matchedUsers.forEach(u => {
+                    let fName = String(u.first_name || u.firstName || '');
+                    let lName = String(u.last_name || u.lastName || '');
                     html += `
                         <a href="admin-users.html?search=${encodeURIComponent(u.email)}" class="search-item">
                             <i class="fi fi-rr-users"></i>
-                            <div><strong>${u.firstName} ${u.lastName || ''}</strong> <span>${u.email}</span></div>
+                            <div><strong>${fName} ${lName}</strong> <span>${u.email}</span></div>
                         </a>`;
                 });
             }
@@ -412,11 +379,10 @@ window.addEventListener('DOMContentLoaded', () => {
             dropdown.style.display = 'block';
         });
 
-        // Hide dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!searchContainer.contains(e.target)) {
                 dropdown.style.display = 'none';
             }
         });
     }
-});
+}

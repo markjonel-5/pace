@@ -183,7 +183,6 @@ window.addEventListener('DOMContentLoaded', () => {
             const passwordInput = document.getElementById('login-password').value;
             const loginBtn = loginForm.querySelector('.auth-btn');
 
-            // Change button to show it's loading
             loginBtn.innerText = "LOGGING IN...";
             loginBtn.style.pointerEvents = "none";
 
@@ -195,22 +194,18 @@ window.addEventListener('DOMContentLoaded', () => {
             })
             .then(response => response.json())
             .then(data => {
-                // Reset button
                 loginBtn.innerText = "LOGIN";
                 loginBtn.style.pointerEvents = "auto";
 
                 if (data.success) {
-                    // Save safe user data (no password) to localStorage for the UI to read
-                    localStorage.setItem('pace_current_user', JSON.stringify(data.user));
-
-                    // Route them based on their role
+                    // FIX: Removed localStorage! The server (XAMPP) now remembers the user securely.
+                    // Just redirect them based on their role!
                     if (data.user.role === 'admin') {
                         window.location.href = "admin-dashboard.html";
                     } else {
                         window.location.href = "homepage.html";
                     }
                 } else {
-                    // Handle specific errors returned by PHP
                     if (data.message === 'user_not_found') {
                         showError('login-username', 'Username or Email not found.');
                     } else if (data.message === 'wrong_password') {

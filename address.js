@@ -1,8 +1,7 @@
 /* SAVED ADDRESSES FUNCTION START */
 window.addEventListener('DOMContentLoaded', () => {
-    
     if (document.getElementById('address-list-container')) {
-        loadAddressData();
+        setTimeout(loadAddressData, 100); 
     }
 
     const addressForm = document.getElementById('form-new-address');
@@ -14,12 +13,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (phoneInput) {
         phoneInput.addEventListener('input', function (e) {
             let numbersOnly = this.value.replace(/\D/g, '');
-
             if (numbersOnly.startsWith('09')) numbersOnly = numbersOnly.substring(2);
             else if (numbersOnly.startsWith('0')) numbersOnly = numbersOnly.substring(1);
-            
             numbersOnly = numbersOnly.substring(0, 9);
-
             let formatted = '';
             if (numbersOnly.length > 0) formatted = numbersOnly.substring(0, 2);
             if (numbersOnly.length > 2) formatted += ' ' + numbersOnly.substring(2, 5);
@@ -31,9 +27,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const addressModal = document.getElementById('address-modal');
     if (addressModal) {
         addressModal.addEventListener('close', () => {
-            if (addressForm) {
-                addressForm.reset();
-            }
+            if (addressForm) addressForm.reset();
             const phoneWrapper = document.querySelector('.phone-input-wrapper');
             const phoneError = document.getElementById('addr-phone-error');
             if (phoneWrapper) phoneWrapper.classList.remove('input-error');
@@ -42,16 +36,14 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Function to load user data and display addresses
 function loadAddressData() {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser) {
+    if (!window.currentUser) {
         window.location.href = 'login.html';
         return;
     }
 
     if (typeof updateSidebarProfile === 'function') {
-        updateSidebarProfile(currentUser);
+        updateSidebarProfile(window.currentUser);
     }
 
     const addressContainer = document.getElementById('address-list-container');
@@ -59,7 +51,7 @@ function loadAddressData() {
 
     if (!addressContainer || !emptyState) return;
 
-    const addresses = currentUser.addresses || [];
+    const addresses = window.currentUser.addresses || [];
 
     if (addresses.length === 0) {
         addressContainer.style.display = 'none';
@@ -92,7 +84,6 @@ function loadAddressData() {
     }
 }
 
-// Function to handle form submission
 function handleSaveAddress(e) {
     e.preventDefault();
 
@@ -123,19 +114,13 @@ function handleSaveAddress(e) {
         label: document.querySelector('input[name="addr-label"]:checked').value
     };
 
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
-
-    if (userIndex > -1) {
-        if (!currentUser.addresses) currentUser.addresses = [];
-        if (!users[userIndex].addresses) users[userIndex].addresses = [];
-
-        currentUser.addresses.push(newAddress);
-        users[userIndex].addresses.push(newAddress);
-
-        localStorage.setItem('pace_users', JSON.stringify(users));
-        localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
+    if (window.currentUser) {
+        if (!window.currentUser.addresses) window.currentUser.addresses = [];
+        window.currentUser.addresses.push(newAddress);
+        
+        if (window.syncAddressesToDatabase) {
+            window.syncAddressesToDatabase(window.currentUser.email, window.currentUser.addresses);
+        }
 
         e.target.reset();
         closeAccountModal('address-modal');
@@ -143,26 +128,6 @@ function handleSaveAddress(e) {
     }
 }
 
-window.deleteAddress = function(idToDelete) {
-    if(confirm("Are you sure you want to delete this address?")) {
-        let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-        let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-        let userIndex = users.findIndex(u => u.email === currentUser.email);
-
-        if (userIndex > -1 && currentUser.addresses) {
-            currentUser.addresses = currentUser.addresses.filter(addr => addr.id !== idToDelete);
-            users[userIndex].addresses = users[userIndex].addresses.filter(addr => addr.id !== idToDelete);
-
-            localStorage.setItem('pace_users', JSON.stringify(users));
-            localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-
-            loadAddressData();
-        }
-    }
-};
-/* SAVED ADDRESSES FUNCTION END */
-
-/* DELETE ADDRESS MODAL START */
 let addressIdToDelete = null;
 
 window.openDeleteAddressModal = function(id) {
@@ -190,19 +155,14 @@ window.closeDeleteAddressModal = function() {
 window.executeDeleteAddress = function() {
     if (!addressIdToDelete) return;
 
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
-
-    if (userIndex > -1 && currentUser.addresses) {
-        currentUser.addresses = currentUser.addresses.filter(addr => addr.id !== addressIdToDelete);
-        users[userIndex].addresses = users[userIndex].addresses.filter(addr => addr.id !== addressIdToDelete);
-
-        localStorage.setItem('pace_users', JSON.stringify(users));
-        localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
+    if (window.currentUser && window.currentUser.addresses) {
+        window.currentUser.addresses = window.currentUser.addresses.filter(addr => addr.id !== addressIdToDelete);
+        
+        if (window.syncAddressesToDatabase) {
+            window.syncAddressesToDatabase(window.currentUser.email, window.currentUser.addresses);
+        }
 
         closeDeleteAddressModal();
         loadAddressData();
     }
 };
-/* DELETE ADDRESS MODAL END */

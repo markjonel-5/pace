@@ -1,21 +1,15 @@
 /* CHAT-SUPPORT PAGE FUNCTION START */
-
 function renderPageChat() {
     const transcriptBox = document.getElementById('page-transcript-box');
-    if (!transcriptBox) return; 
-    
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser || !currentUser.chatHistory) return;
+    if (!transcriptBox || !window.currentUser || !window.currentUser.chatHistory) return; 
 
     let html = '';
-    // Gumamit tayo ng (msg, index) para ma-check kung nasa dulo na ang message
-    currentUser.chatHistory.forEach((msg, index) => {
+    window.currentUser.chatHistory.forEach((msg, index) => {
         const align = msg.sender === 'user' ? 'flex-end' : 'flex-start';
         const bg = msg.sender === 'user' ? 'var(--brand-color)' : '#eaeaea';
         const color = msg.sender === 'user' ? '#fff' : 'var(--darkgray-text)';
         const border = msg.sender === 'user' ? 'border-bottom-right-radius: 2px;' : 'border-bottom-left-radius: 2px;';
 
-        // TINANGGAL NA ANG "YOU" AT "PACE SUPPORT" (Oras na lang ang natira)
         html += `
             <div class="page-msg-wrapper" style="display:flex; flex-direction:column; align-items: ${align};">
                 <span class="page-msg-meta" style="font-size:11px; color:#aaa; margin-bottom:4px;">${msg.time}</span>
@@ -25,13 +19,8 @@ function renderPageChat() {
             </div>
         `;
 
-        // IDINAGDAG: "SEEN" INDICATOR PARA SA CUSTOMER PAGE
-        if (index === currentUser.chatHistory.length - 1 && msg.sender === 'user' && msg.read) {
-            html += `
-                <div style="font-size: 11px; color: var(--gray-text); text-align: right; width: 100%; padding-right: 5px; margin-top: -10px; margin-bottom: 10px;">
-                    Seen
-                </div>
-            `;
+        if (index === window.currentUser.chatHistory.length - 1 && msg.sender === 'user' && msg.read) {
+            html += `<div style="font-size: 11px; color: var(--gray-text); text-align: right; width: 100%; padding-right: 5px; margin-top: -10px; margin-bottom: 10px;">Seen</div>`;
         }
     });
     
@@ -56,7 +45,8 @@ function handlePageChatEnter(event) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    renderPageChat();
+    // Wait for global.js to fetch the user
+    setTimeout(renderPageChat, 150);
 });
 
 function openDeleteChatModal() {
@@ -83,17 +73,12 @@ function closeDeleteChatModal() {
 }
 
 function executeClearChat() {
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser) return;
+    if (!window.currentUser) return;
 
-    currentUser.chatHistory = [];
-    localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
-    if (userIndex > -1) {
-        users[userIndex].chatHistory = [];
-        localStorage.setItem('pace_users', JSON.stringify(users));
+    window.currentUser.chatHistory = [];
+    
+    if (window.syncChatToDatabase) {
+        window.syncChatToDatabase(window.currentUser.email, window.currentUser.chatHistory);
     }
 
     if (typeof saveChatToDatabase === 'function') {
@@ -102,11 +87,6 @@ function executeClearChat() {
 
     renderPageChat();
 
-    try {
-        if (typeof loadChatHistory === 'function') loadChatHistory();
-    } catch (error) {
-    }
-
+    if (typeof loadChatHistory === 'function') loadChatHistory();
     closeDeleteChatModal();
 }
-/* CHAT-SUPPORT PAGE FUNCTION END */

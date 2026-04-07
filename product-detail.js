@@ -213,7 +213,7 @@ function loadProductDetails(p) {
 // SWITCH COLOR IN PRODUCT DETAIL PAGE
 function switchColor(variantId) {
     let currentProducts = JSON.parse(localStorage.getItem('pace_products')) || products;
-    const newVariant = currentProducts.find(p => p.id === variantId);
+    const newVariant = currentProducts.find(p => String(p.id) === String(variantId));
     if (!newVariant) return;
     window.history.pushState(null, '', '?id=' + variantId);
     loadProductDetails(newVariant);
@@ -234,7 +234,7 @@ function selectSize(btn, sizeValue) {
     document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active-size'));
     btn.classList.add('active-size');
     currentSelectedSize = sizeValue;
-    document.getElementById('size-error-message').classList.add('error-hidden');
+    document.getElementById('size-error-message')?.classList.add('error-hidden');
     const sizeGrid = document.getElementById('size-grid');
     if (sizeGrid) sizeGrid.classList.remove('size-grid-error');
 }
@@ -310,7 +310,7 @@ function buyNow(product) {
     }
 }
 
-// PRODUCT REVIEWS LOGIC
+// PRODUCT REVIEWS LOGIC (NEW: FETCHES FROM MYSQL LIVE DATABASE)
 let activeProductReviews = [];
 
 function renderProductReviewSummary(productName) {
@@ -318,59 +318,64 @@ function renderProductReviewSummary(productName) {
     if (acTexts.length < 3) return;
     const reviewBox = acTexts[2];
 
-    let globalFeedbacks = JSON.parse(localStorage.getItem('pace_global_feedbacks')) || [];
-    activeProductReviews = globalFeedbacks.filter(fb => fb.productName === productName);
-    let totalReviews = activeProductReviews.length;
+    fetch('Database/fetch-feedbacks.php')
+    .then(res => res.json())
+    .then(data => {
+        let globalFeedbacks = data.success ? data.reviews : [];
+        activeProductReviews = globalFeedbacks.filter(fb => fb.productName === productName);
+        let totalReviews = activeProductReviews.length;
 
-    if (totalReviews === 0) {
+        if (totalReviews === 0) {
+            reviewBox.innerHTML = `
+                <div class="review-summary">
+                    <div class="review-overall">
+                        <div class="review-score">0.0</div>
+                        <div class="review-stars" style="color: #ccc;">★★★★★</div>
+                        <div class="review-count">There are no reviews yet</div>
+                    </div>
+                    <div class="review-bars">
+                        ${[5, 4, 3, 2, 1].map(i => `<div class="review-bar-row"><span class="bar-label">${i} ★</span><div class="bar-track"><div class="bar-fill" style="width: 0%;"></div></div><span class="bar-count">0</span></div>`).join('')}
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        let sum = 0;
+        let starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+        activeProductReviews.forEach(fb => {
+            sum += fb.rating;
+            starCounts[fb.rating] = (starCounts[fb.rating] || 0) + 1;
+        });
+
+        let average = (sum / totalReviews).toFixed(1);
+        let starsHTML = '';
+        for (let i = 1; i <= 5; i++) starsHTML += i <= Math.round(average) ? '★' : '☆';
+
+        let barsHTML = '';
+        for (let i = 5; i >= 1; i--) {
+            let percentage = (starCounts[i] / totalReviews) * 100;
+            barsHTML += `<div class="review-bar-row"><span class="bar-label">${i} ★</span><div class="bar-track"><div class="bar-fill" style="width: ${percentage}%;"></div></div><span class="bar-count">${starCounts[i]}</span></div>`;
+        }
+
+        let previewReviews = activeProductReviews.slice(0, 2);
+        let commentsHTML = previewReviews.map(fb => generateReviewCard(fb)).join('');
+
         reviewBox.innerHTML = `
             <div class="review-summary">
                 <div class="review-overall">
-                    <div class="review-score">0.0</div>
-                    <div class="review-stars" style="color: #ccc;">★★★★★</div>
-                    <div class="review-count">There are no reviews yet</div>
+                    <div class="review-score">${average}</div>
+                    <div class="review-stars" style="color: var(--brand-color);">${starsHTML}</div>
+                    <div class="review-count">Based on ${totalReviews} review${totalReviews > 1 ? 's' : ''}</div>
                 </div>
-                <div class="review-bars">
-                    ${[5, 4, 3, 2, 1].map(i => `<div class="review-bar-row"><span class="bar-label">${i} ★</span><div class="bar-track"><div class="bar-fill" style="width: 0%;"></div></div><span class="bar-count">0</span></div>`).join('')}
-                </div>
+                <div class="review-bars">${barsHTML}</div>
             </div>
+            <div class="customer-reviews-list">${commentsHTML}</div>
+            <button class="see-all-reviews-btn" onclick="openAllReviewsModal()">See All ${totalReviews} Reviews</button>
         `;
-        return;
-    }
-
-    let sum = 0;
-    let starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-
-    activeProductReviews.forEach(fb => {
-        sum += fb.rating;
-        starCounts[fb.rating] = (starCounts[fb.rating] || 0) + 1;
-    });
-
-    let average = (sum / totalReviews).toFixed(1);
-    let starsHTML = '';
-    for (let i = 1; i <= 5; i++) starsHTML += i <= Math.round(average) ? '★' : '☆';
-
-    let barsHTML = '';
-    for (let i = 5; i >= 1; i--) {
-        let percentage = (starCounts[i] / totalReviews) * 100;
-        barsHTML += `<div class="review-bar-row"><span class="bar-label">${i} ★</span><div class="bar-track"><div class="bar-fill" style="width: ${percentage}%;"></div></div><span class="bar-count">${starCounts[i]}</span></div>`;
-    }
-
-    let previewReviews = activeProductReviews.slice(0, 2);
-    let commentsHTML = previewReviews.map(fb => generateReviewCard(fb)).join('');
-
-    reviewBox.innerHTML = `
-        <div class="review-summary">
-            <div class="review-overall">
-                <div class="review-score">${average}</div>
-                <div class="review-stars" style="color: var(--brand-color);">${starsHTML}</div>
-                <div class="review-count">Based on ${totalReviews} review${totalReviews > 1 ? 's' : ''}</div>
-            </div>
-            <div class="review-bars">${barsHTML}</div>
-        </div>
-        <div class="customer-reviews-list">${commentsHTML}</div>
-        <button class="see-all-reviews-btn" onclick="openAllReviewsModal()">See All ${totalReviews} Reviews</button>
-    `;
+    })
+    .catch(err => console.error("Error loading reviews:", err));
 }
 
 function generateReviewCard(fb) {
@@ -381,12 +386,10 @@ function generateReviewCard(fb) {
     if ((fb.photos && fb.photos.length) || fb.video) {
         mediaHTML += `<div class="review-card-media">`;
         if (fb.video) {
-
             mediaHTML += `<video src="${fb.video}" class="review-media-item" onclick="openMediaPreview('${fb.video}', 'video')" muted></video>`;
         }
         if (fb.photos) {
             fb.photos.forEach(photo => {
-
                 mediaHTML += `<img src="${photo}" class="review-media-item" onclick="openMediaPreview('${photo}', 'image')">`;
             });
         }

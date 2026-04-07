@@ -1,8 +1,8 @@
 /* PAYMENT METHODS FUNCTION START */
 window.addEventListener('DOMContentLoaded', () => {
-    
     if (document.getElementById('payment-list-container')) {
-        loadPaymentData();
+        // Tiny delay so global.js has time to populate window.currentUser
+        setTimeout(loadPaymentData, 100);
     }
 
     const paymentForm = document.getElementById('form-new-payment');
@@ -118,14 +118,13 @@ function setupInputFormatting() {
 
 // function to load user data and display payment methods
 function loadPaymentData() {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser) {
+    if (!window.currentUser) {
         window.location.href = 'login.html';
         return;
     }
 
     if (typeof updateSidebarProfile === 'function') {
-        updateSidebarProfile(currentUser);
+        updateSidebarProfile(window.currentUser);
     }
 
     const pmContainer = document.getElementById('payment-list-container');
@@ -133,7 +132,7 @@ function loadPaymentData() {
 
     if (!pmContainer || !emptyState) return;
 
-    const payments = currentUser.payments || [];
+    const payments = window.currentUser.payments || [];
 
     if (payments.length === 0) {
         pmContainer.style.display = 'none';
@@ -300,19 +299,14 @@ function handleSavePayment(e) {
         data: paymentData
     };
 
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
+    // Save using the new live memory setup!
+    if (window.currentUser) {
+        if (!window.currentUser.payments) window.currentUser.payments = [];
+        window.currentUser.payments.push(newPayment);
 
-    if (userIndex > -1) {
-        if (!currentUser.payments) currentUser.payments = [];
-        if (!users[userIndex].payments) users[userIndex].payments = [];
-
-        currentUser.payments.push(newPayment);
-        users[userIndex].payments.push(newPayment);
-
-        localStorage.setItem('pace_users', JSON.stringify(users));
-        localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
+        if (window.syncPaymentsToDatabase) {
+            window.syncPaymentsToDatabase(window.currentUser.email, window.currentUser.payments);
+        }
 
         e.target.reset();
         closeAccountModal('payment-modal');
@@ -349,16 +343,12 @@ window.closeDeletePaymentModal = function() {
 window.executeDeletePayment = function() {
     if (!paymentIdToDelete) return;
 
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
+    if (window.currentUser && window.currentUser.payments) {
+        window.currentUser.payments = window.currentUser.payments.filter(pm => pm.id !== paymentIdToDelete);
 
-    if (userIndex > -1 && currentUser.payments) {
-        currentUser.payments = currentUser.payments.filter(pm => pm.id !== paymentIdToDelete);
-        users[userIndex].payments = users[userIndex].payments.filter(pm => pm.id !== paymentIdToDelete);
-
-        localStorage.setItem('pace_users', JSON.stringify(users));
-        localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
+        if (window.syncPaymentsToDatabase) {
+            window.syncPaymentsToDatabase(window.currentUser.email, window.currentUser.payments);
+        }
 
         closeDeletePaymentModal();
         loadPaymentData();

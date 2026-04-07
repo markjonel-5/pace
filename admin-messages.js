@@ -1,41 +1,54 @@
 let currentSelectedEmail = null;
+window.adminChatUsers = [];
 
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. SECURITY CHECK
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser || currentUser.role !== 'admin') {
-        window.location.href = "login.html";
-        return;
-    }
+    // 1. SECURITY CHECK & DATA LOAD
+    fetch('Database/fetch-session.php')
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success || data.user.role !== 'admin') {
+                window.location.href = "login.html";
+                return;
+            }
+            window.currentUser = data.user;
+            
+            let fName = String(window.currentUser.first_name || window.currentUser.firstName || 'Admin');
+            let lName = String(window.currentUser.last_name || window.currentUser.lastName || '');
+            const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
+            
+            document.getElementById('sidebar-initials').innerText = initials;
+            document.getElementById('admin-name-display').innerText = `${fName} ${lName}`.trim();
 
-    // FIX: Safely Load Admin Profile Info
-    let fName = String(currentUser.first_name || currentUser.firstName || 'Admin');
-    let lName = String(currentUser.last_name || currentUser.lastName || '');
-    const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
-    
-    document.getElementById('sidebar-initials').innerText = initials;
-    document.getElementById('admin-name-display').innerText = `${fName} ${lName}`.trim();
+            fetchChatUsers();
+        });
 
-    // Load Contacts
-    loadContacts();
-
-    // Search Listener
     const searchInput = document.getElementById('contact-search-input');
     if (searchInput) {
-        searchInput.addEventListener('input', () => loadContacts(searchInput.value));
+        searchInput.addEventListener('input', () => renderContacts(searchInput.value));
     }
 });
 
-function loadContacts(searchQuery = '') {
-    const contactsContainer = document.getElementById('contacts-list-container');
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
+function fetchChatUsers() {
+    fetch('Database/fetch-users.php')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.adminChatUsers = data.users;
+                renderContacts(document.getElementById('contact-search-input')?.value || '');
+                if (currentSelectedEmail) {
+                    openChat(currentSelectedEmail); 
+                }
+            }
+        });
+}
 
-    let chatUsers = users.filter(u => u.chatHistory && u.chatHistory.length > 0 && u.role !== 'admin');
+function renderContacts(searchQuery = '') {
+    const contactsContainer = document.getElementById('contacts-list-container');
+    let chatUsers = window.adminChatUsers.filter(u => u.chatHistory && u.chatHistory.length > 0 && u.role !== 'admin');
 
     if (searchQuery.trim() !== '') {
         const lowerQuery = searchQuery.toLowerCase();
         chatUsers = chatUsers.filter(u => {
-            // FIX: Safely grab names for searching
             let fName = String(u.first_name || u.firstName || '');
             let lName = String(u.last_name || u.lastName || '');
             return `${fName} ${lName}`.toLowerCase().includes(lowerQuery) || u.email.toLowerCase().includes(lowerQuery);
@@ -56,7 +69,6 @@ function loadContacts(searchQuery = '') {
     }
 
     contactsContainer.innerHTML = chatUsers.map(u => {
-        // FIX: Safely grab names for rendering
         let fName = String(u.first_name || u.firstName || 'User');
         let lName = String(u.last_name || u.lastName || '');
         const fullName = `${fName} ${lName}`.trim();
@@ -90,14 +102,9 @@ window.openChat = function (email) {
     document.getElementById('chat-blank-state').style.display = 'none';
     document.getElementById('chat-active-state').style.display = 'flex';
 
-    loadContacts(document.getElementById('contact-search-input').value);
-
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let u = users.find(user => user.email === email);
-
+    let u = window.adminChatUsers.find(user => user.email === email);
     if (!u) return;
 
-    // FIX: Safely grab names for chat header
     let fName = String(u.first_name || u.firstName || 'User');
     let lName = String(u.last_name || u.lastName || '');
     const fullName = `${fName} ${lName}`.trim();
@@ -124,8 +131,12 @@ window.openChat = function (email) {
     });
 
     if (isUpdated) {
-        localStorage.setItem('pace_users', JSON.stringify(users));
-        loadContacts(document.getElementById('contact-search-input').value); 
+        // Sync auto-read to database
+        fetch('Database/admin-reply-chat.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: u.email, chatHistory: u.chatHistory })
+        }).then(() => fetchChatUsers());
     }
 
     renderChatMessages(u.chatHistory);
@@ -140,9 +151,7 @@ function renderChatMessages(chatHistory) {
     }
 
     chatArea.innerHTML = chatHistory.map(msg => {
-        // user = customer (left), admin/bot = support (right)
         const wrapperClass = msg.sender === 'user' ? 'customer' : 'admin';
-
         return `
             <div class="msg-wrapper ${wrapperClass}">
                 <div class="msg-bubble">${msg.text}</div>
@@ -151,7 +160,6 @@ function renderChatMessages(chatHistory) {
         `;
     }).join('');
 
-    // Scroll to bottom
     chatArea.scrollTop = chatArea.scrollHeight;
 }
 
@@ -160,21 +168,17 @@ window.sendAdminMessage = function () {
 
     const input = document.getElementById('admin-chat-input');
     const text = input.value.trim();
-
     if (text === '') return;
 
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentSelectedEmail);
+    let userIndex = window.adminChatUsers.findIndex(u => u.email === currentSelectedEmail);
 
     if (userIndex > -1) {
-        if (!users[userIndex].chatHistory) users[userIndex].chatHistory = [];
+        if (!window.adminChatUsers[userIndex].chatHistory) window.adminChatUsers[userIndex].chatHistory = [];
 
         const now = new Date();
         const timeString = now.toLocaleDateString() + ' at ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        // Sender is 'admin' (renders on right side for admin, and right side for bot logic in global.js)
-        // May kasamang timestamp at auto-read status
-        users[userIndex].chatHistory.push({
+        window.adminChatUsers[userIndex].chatHistory.push({
             sender: 'admin',
             text: text,
             time: timeString,
@@ -182,11 +186,15 @@ window.sendAdminMessage = function () {
             read: true
         });
 
-        localStorage.setItem('pace_users', JSON.stringify(users));
-
-        input.value = '';
-        renderChatMessages(users[userIndex].chatHistory);
-        loadContacts(document.getElementById('contact-search-input').value); // update snippet
+        // SEND DIRECTLY TO LIVE MYSQL DATABASE!
+        fetch('Database/admin-reply-chat.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentSelectedEmail, chatHistory: window.adminChatUsers[userIndex].chatHistory })
+        }).then(() => {
+            input.value = '';
+            fetchChatUsers(); // Refresh to lock it in
+        });
     }
 };
 

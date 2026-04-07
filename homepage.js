@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const subject = encodeURIComponent(subjectInput);
             const body = encodeURIComponent(message);
 
-            window.location.href = `mailto:pace@gmail.com?subject=${subject}&body=${body}`;
+            window.location.href = `mailto:pace.store.admin@gmail.com?subject=${subject}&body=${body}`;
 
             setTimeout(() => { this.reset(); }, 1000);
         });

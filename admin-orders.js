@@ -1,54 +1,58 @@
+window.adminOrdersData = [];
+
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. SECURITY CHECK & INITIALS
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser || currentUser.role !== 'admin') {
-        window.location.href = "login.html";
-        return;
+    // 1. SECURITY CHECK & DATA LOAD
+    fetch('Database/fetch-session.php?nocache=' + new Date().getTime())
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success || data.user.role !== 'admin') {
+                window.location.href = "login.html";
+                return;
+            }
+            window.currentUser = data.user;
+            
+            let fName = String(window.currentUser.first_name || window.currentUser.firstName || 'Admin');
+            let lName = String(window.currentUser.last_name || window.currentUser.lastName || '');
+            const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
+            
+            document.getElementById('sidebar-initials').innerText = initials;
+            document.getElementById('admin-name-display').innerText = `${fName} ${lName}`.trim();
+
+            const popupName = document.getElementById('popup-admin-name');
+            const popupInitials = document.getElementById('popup-initials');
+            if (popupName) popupName.innerText = `${fName} ${lName}`.trim();
+            if (popupInitials) popupInitials.innerText = initials;
+
+            fetchOrdersFromDatabase();
+        });
+
+    const ordersSearch = document.getElementById('orders-search-input');
+    if (ordersSearch) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchParam = urlParams.get('search') || '';
+        if (searchParam) {
+            ordersSearch.value = searchParam;
+        }
+        ordersSearch.addEventListener('input', (e) => {
+            renderTable(window.adminOrdersData, currentFilterStatus, e.target.value);
+        });
     }
+});
 
-    // Safely format the admin initials (using the fix we applied earlier!)
-    let fName = String(currentUser.first_name || currentUser.firstName || 'Admin');
-    let lName = String(currentUser.last_name || currentUser.lastName || '');
-    const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
-
-    document.getElementById('sidebar-initials').innerText = initials;
-    document.getElementById('admin-name-display').innerText = `${fName} ${lName}`.trim();
-
-    const popupName = document.getElementById('popup-admin-name');
-    const popupInitials = document.getElementById('popup-initials');
-    if (popupName) popupName.innerText = `${fName} ${lName}`.trim();
-    if (popupInitials) popupInitials.innerText = initials;
-
-    // 2. FETCH LIVE ORDERS FROM MYSQL!
-    fetch('Database/fetch-orders.php')
+function fetchOrdersFromDatabase() {
+    fetch('Database/fetch-orders.php?nocache=' + new Date().getTime())
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Save it locally so your filters and searches still work instantly
-                localStorage.setItem('pace_orders', JSON.stringify(data.orders));
-
+                window.adminOrdersData = data.orders;
                 renderOrderStats(data.orders);
-
-                // SEARCH LISTENER & DEEP LINKING
-                const ordersSearch = document.getElementById('orders-search-input');
-                const urlParams = new URLSearchParams(window.location.search);
-                const searchParam = urlParams.get('search') || '';
-
-                if (ordersSearch) {
-                    if (searchParam) {
-                        ordersSearch.value = searchParam;
-                    }
-                    ordersSearch.addEventListener('input', (e) => {
-                        renderTable(data.orders, currentFilterStatus, e.target.value);
-                    });
-                }
-
-                // INITIALIZE TABLE
-                renderTable(data.orders, 'All', searchParam);
+                
+                const searchVal = document.getElementById('orders-search-input') ? document.getElementById('orders-search-input').value : '';
+                renderTable(data.orders, currentFilterStatus, searchVal);
             }
         })
         .catch(error => console.error("Error fetching orders:", error));
-});
+}
 
 function renderOrderStats(orders) {
     let toShip = 0, toReceive = 0, completed = 0;
@@ -59,7 +63,6 @@ function renderOrderStats(orders) {
         if (o.status === 'Completed') completed++;
     });
 
-    // Added Null Checks here
     const statAllOrders = document.getElementById('stat-all-orders');
     if (statAllOrders) statAllOrders.innerText = orders.length;
 
@@ -73,15 +76,6 @@ function renderOrderStats(orders) {
     if (statCompleted) statCompleted.innerText = completed;
 }
 
-window.filterOrders = function (status, element) {
-    document.querySelectorAll('.order-stat-box').forEach(box => box.classList.remove('active'));
-    element.classList.add('active');
-
-    let orders = JSON.parse(localStorage.getItem('pace_orders')) || [];
-    renderTable(orders, status);
-};
-
-// Variable para maalala kung anong status ang currently selected
 let currentFilterStatus = 'All';
 
 window.filterOrders = function (status, element) {
@@ -89,40 +83,26 @@ window.filterOrders = function (status, element) {
     element.classList.add('active');
 
     currentFilterStatus = status;
-    let orders = JSON.parse(localStorage.getItem('pace_orders')) || [];
-
-    // Kunin kung may text sa search box habang nagpapalit ng tab
     const searchVal = document.getElementById('orders-search-input') ? document.getElementById('orders-search-input').value : '';
-
-    renderTable(orders, currentFilterStatus, searchVal);
+    renderTable(window.adminOrdersData, currentFilterStatus, searchVal);
 };
 
-// Dinagdagan natin ng 'searchQuery' na parameter
 function renderTable(orders, filterStatus, searchQuery = '') {
     const tableBody = document.getElementById('orders-table-body');
-    let filteredOrders = [...orders].reverse();
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
 
-    // 1. Filter by Status (All, To Ship, etc.)
+    // FIX: Simply reverse the array! MySQL sends oldest first, so this puts the absolute newest at the top instantly.
+    let filteredOrders = [...orders];
+
     if (filterStatus !== 'All') {
         filteredOrders = filteredOrders.filter(o => o.status === filterStatus);
     }
 
-    // 2. Filter by Search Query (Name or Email)
     if (searchQuery.trim() !== '') {
         const lowerQuery = searchQuery.toLowerCase();
         filteredOrders = filteredOrders.filter(order => {
-
-            let displayEmail = order.customerEmail || '';
-            if (!displayEmail) {
-                let foundUser = users.find(u => u.orderHistory && u.orderHistory.some(o => o.id === order.id));
-                if (foundUser) displayEmail = foundUser.email;
-            }
-
             const matchName = order.customerName.toLowerCase().includes(lowerQuery);
-            const matchEmail = displayEmail.toLowerCase().includes(lowerQuery);
+            const matchEmail = (order.customerEmail || '').toLowerCase().includes(lowerQuery);
             const matchID = order.id.toLowerCase().includes(lowerQuery);
-
             return matchName || matchEmail || matchID;
         });
     }
@@ -132,11 +112,8 @@ function renderTable(orders, filterStatus, searchQuery = '') {
         return;
     }
 
-    // 3. Render HTML
     if (tableBody) {
         tableBody.innerHTML = filteredOrders.map(order => {
-
-            // INLINE BADGE STYLING LOGIC
             let badgeBg = '';
             let badgeColor = '';
 
@@ -147,7 +124,6 @@ function renderTable(orders, filterStatus, searchQuery = '') {
                 badgeBg = '#fef5e7';
                 badgeColor = '#f39c12';
             } else {
-                // Default fallback usually for 'To Receive' (Blue)
                 badgeBg = '#e9f5fc';
                 badgeColor = '#3498db';
             }
@@ -164,39 +140,31 @@ function renderTable(orders, filterStatus, searchQuery = '') {
                 }
             }
 
-            let displayEmail = order.customerEmail;
-            if (!displayEmail) {
-                let foundUser = users.find(u => u.orderHistory && u.orderHistory.some(o => o.id === order.id));
-                if (foundUser) displayEmail = foundUser.email;
-            }
-
             return `
-        <tr>
-            <td style="font-weight: 600;">${order.id}</td>
-            <td>
-                ${order.customerName}
-                <div style="font-size: 12px; color: var(--gray-text);">${displayEmail || 'No email attached'}</div>
-            </td>
-            <td style="color: var(--gray-text);">${order.date}</td>
-            <td><span style="${badgeStyle}">${order.status}</span></td>
-            <td style="font-weight: 700; color: var(--darkgray-text);">₱ ${parseFloat(order.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-            <td class="actions-cell">
-                <div class="action-btns">
-                    ${actionButtonHTML}
-                    <button class="btn-view" onclick="viewOrderDetails('${order.id}')">View Details</button>
-                </div>
-            </td>
-        </tr>
-        `;
+            <tr>
+                <td style="font-weight: 600;">${order.id}</td>
+                <td>
+                    ${order.customerName}
+                    <div style="font-size: 12px; color: var(--gray-text);">${order.customerEmail || 'No email attached'}</div>
+                </td>
+                <td style="color: var(--gray-text);">${order.date}</td>
+                <td><span style="${badgeStyle}">${order.status}</span></td>
+                <td style="font-weight: 700; color: var(--darkgray-text);">₱ ${parseFloat(order.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                <td class="actions-cell">
+                    <div class="action-btns">
+                        ${actionButtonHTML}
+                        <button class="btn-view" onclick="viewOrderDetails('${order.id}')">View Details</button>
+                    </div>
+                </td>
+            </tr>
+            `;
         }).join('');
-
     }
 }
 
 // ===============================================
 // MODAL & SHIP ORDER LOGIC
 // ===============================================
-
 let currentOrderIdToShip = null;
 
 window.openShipModal = function (orderId) {
@@ -224,13 +192,11 @@ window.executeShipOrder = function () {
     if (!currentOrderIdToShip) return;
     let orderId = currentOrderIdToShip;
 
-    // Instantly freeze the button so it can't be clicked twice!
     let btn = document.activeElement;
     let originalText = btn.innerText;
     btn.innerText = "Sending...";
     btn.style.pointerEvents = "none";
 
-    // Send update to live database & trigger email!
     fetch('Database/update-order-status.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -240,10 +206,8 @@ window.executeShipOrder = function () {
         .then(data => {
             if (data.success) {
                 closeShipModal();
-                // Trigger your custom modal instead of the alert!
                 showSuccessAlert("Order Shipped!", "An email has been successfully sent to the customer.");
             } else {
-                // If it fails, unlock the button
                 btn.innerText = originalText;
                 btn.style.pointerEvents = "auto";
             }
@@ -253,7 +217,6 @@ window.executeShipOrder = function () {
 // ===============================================
 // MODAL & ORDER PACKED (PICK UP) LOGIC
 // ===============================================
-
 let currentOrderIdToReady = null;
 
 window.openReadyModal = function (orderId) {
@@ -281,13 +244,11 @@ window.executeReadyOrder = function () {
     if (!currentOrderIdToReady) return;
     let orderId = currentOrderIdToReady;
 
-    // Instantly freeze the button so it can't be clicked twice!
     let btn = document.activeElement;
     let originalText = btn.innerText;
     btn.innerText = "Sending...";
     btn.style.pointerEvents = "none";
 
-    // Send update to live database & trigger email!
     fetch('Database/update-order-status.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -297,10 +258,8 @@ window.executeReadyOrder = function () {
         .then(data => {
             if (data.success) {
                 closeReadyModal();
-                // Trigger your custom modal instead of the alert!
                 showSuccessAlert("Order Packed!", "An email has been successfully sent to the customer.");
             } else {
-                // If it fails, unlock the button
                 btn.innerText = originalText;
                 btn.style.pointerEvents = "auto";
             }
@@ -308,36 +267,17 @@ window.executeReadyOrder = function () {
 };
 
 // ===============================================
-// VIEW ORDER DETAILS LOGIC (Binalik dito para gumana yung View Panel)
+// VIEW ORDER DETAILS LOGIC
 // ===============================================
-
 window.viewOrderDetails = function (orderId) {
-    let allOrders = JSON.parse(localStorage.getItem('pace_orders')) || [];
-    let order = allOrders.find(o => o.id === orderId);
+    let order = window.adminOrdersData.find(o => o.id === orderId);
     if (!order) return;
 
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let foundUser = users.find(u => u.orderHistory && u.orderHistory.some(o => o.id === orderId));
-
-    if (!order.customerEmail && foundUser) {
-        order.customerEmail = foundUser.email;
-    }
-
-    // --- FIX: KUNIN ANG TOTOONG DELIVERY TYPE SA USER DATABASE ---
     let actualDeliveryType = order.deliveryType;
-    if (!actualDeliveryType && foundUser) {
-        let userOrder = foundUser.orderHistory.find(o => o.id === orderId);
-        if (userOrder) {
-            actualDeliveryType = userOrder.deliveryType;
-        }
-    }
 
     const panelBody = document.getElementById('od-body-content');
+    let addressHTML = '<p style="color:red;">Address missing</p>';
 
-    let addressHTML = '<p style="color:red;">Address missing (Old Test Order)</p>';
-
-    // --- FIX: BULLETPROOF PICK UP CONDITION ---
-    // Ngayon, kahit GCash pa yan, basta In-Store Pick Up o walang shippingAddress, Pick Up ang ilalabas!
     let isPickUp = (actualDeliveryType === 'In-Store Pick Up') ||
         (order.paymentMethod === 'Over-the-counter') ||
         (!order.shippingAddress);

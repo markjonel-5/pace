@@ -1,8 +1,7 @@
 /* ACCOUNT PAGE LOGIC START */
 window.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('.account-content')) {
-
-        loadAccountData();
+        setTimeout(loadAccountData, 100);
 
         const photoUpload = document.getElementById('profile-upload');
         if (photoUpload) {
@@ -12,18 +11,16 @@ window.addEventListener('DOMContentLoaded', () => {
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         const base64Image = e.target.result;
-                        const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-                        let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-                        let userIndex = users.findIndex(u => u.email === currentUser.email);
-
-                        if (userIndex > -1) {
-                            users[userIndex].profilePic = base64Image;
-                            currentUser.profilePic = base64Image;
-                            localStorage.setItem('pace_users', JSON.stringify(users));
-                            localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-                            updateSidebarProfile(currentUser);
-
+                        if (window.currentUser) {
+                            window.currentUser.profilePic = base64Image;
+                            updateSidebarProfile(window.currentUser);
                             if (typeof renderUserMenu === 'function') renderUserMenu();
+
+                            fetch('Database/update-account.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'update_photo', email: window.currentUser.email, photo: base64Image })
+                            });
                         }
                     };
                     reader.readAsDataURL(file);
@@ -47,50 +44,39 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-/* ACCOUNT PAGE LOGIC END */
 
-/* LOAD ACCOUNT DATA FUNCTION START */
 function loadAccountData() {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser) {
+    if (!window.currentUser) {
         window.location.href = 'login.html';
         return;
     }
+    updateSidebarProfile(window.currentUser);
 
-    updateSidebarProfile(currentUser);
-
-    // FIX: Safely grab the names from the new database format
-    let fName = currentUser.first_name || currentUser.firstName || 'Customer';
-    let lName = currentUser.last_name || currentUser.lastName || '';
+    let fName = window.currentUser.first_name || window.currentUser.firstName || 'Customer';
+    let lName = window.currentUser.last_name || window.currentUser.lastName || '';
 
     const dispName = document.getElementById('disp-name');
     if (dispName) {
         dispName.innerText = `${fName} ${lName}`.trim();
-        document.getElementById('disp-phone').innerText = currentUser.phone || 'add a phone number';
-        document.getElementById('disp-email').innerText = currentUser.email;
-        document.getElementById('disp-username').innerText = currentUser.username;
+        document.getElementById('disp-phone').innerText = window.currentUser.phone || 'add a phone number';
+        document.getElementById('disp-email').innerText = window.currentUser.email;
+        document.getElementById('disp-username').innerText = window.currentUser.username;
 
         document.getElementById('acc-fname').value = fName;
         document.getElementById('acc-lname').value = lName;
         
-        let savedPhone = currentUser.phone || '';
-        if (savedPhone.startsWith('+63 9')) {
-            savedPhone = savedPhone.substring(5).trim();
-        }
+        let savedPhone = window.currentUser.phone || '';
+        if (savedPhone.startsWith('+63 9')) savedPhone = savedPhone.substring(5).trim();
         document.getElementById('acc-phone').value = savedPhone;
-        document.getElementById('acc-email').value = currentUser.email;
-        document.getElementById('acc-username').value = currentUser.username;
+        document.getElementById('acc-email').value = window.currentUser.email;
+        document.getElementById('acc-username').value = window.currentUser.username;
     }
 }
-/* LOAD ACCOUNT DATA FUNCTION END */
 
-/* UPDATE USER RECORD FUNCTION START */
 function updateUserRecord(type) {
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
-
-    if (userIndex === -1) return;
+    if (!window.currentUser) return;
+    let currentPassToSend = '';
+    let newPassToSend = '';
 
     if (type === 'personal') {
         const fname = document.getElementById('acc-fname').value.trim();
@@ -106,39 +92,20 @@ function updateUserRecord(type) {
         let digitCount = typedPhone.replace(/\D/g, '').length;
 
         if (digitCount > 0 && digitCount !== 9) {
-            if (phoneError) {
-                phoneError.innerText = "Please enter a complete 10-digit mobile number.";
-                phoneError.classList.remove('error-hidden');
-            }
+            if (phoneError) { phoneError.innerText = "Please enter a complete 10-digit mobile number."; phoneError.classList.remove('error-hidden'); }
             if (phoneWrapper) phoneWrapper.classList.add('input-error');
             return;
         }
 
-        users[userIndex].firstName = fname;
-        users[userIndex].lastName = lname;
-        
-        users[userIndex].phone = (digitCount === 9) ? '+63 9' + typedPhone : '';
-
-        closeAccountModal('personal-modal');
+        window.currentUser.first_name = fname;
+        window.currentUser.last_name = lname;
+        window.currentUser.phone = (digitCount === 9) ? '+63 9' + typedPhone : '';
     }
 
     if (type === 'account') {
         const usernameInput = document.getElementById('acc-username');
         const newUsername = usernameInput.value.trim();
-        const errorMsg = document.getElementById('acc-username-error');
-
-        errorMsg.classList.add('error-hidden');
-        usernameInput.classList.remove('input-error');
-
-        if (newUsername !== currentUser.username && users.some(u => u.username === newUsername)) {
-            errorMsg.innerText = "This username is already taken.";
-            errorMsg.classList.remove('error-hidden');
-            usernameInput.classList.add('input-error');
-            return;
-        }
-
-        users[userIndex].username = newUsername;
-        closeAccountModal('account-modal');
+        window.currentUser.username = newUsername;
     }
 
     if (type === 'password') {
@@ -163,13 +130,8 @@ function updateUserRecord(type) {
         confirmPassInput.classList.remove('input-error');
 
         let hasError = false;
-
-        if (currentPass !== currentUser.password) {
-            errCurrent.innerText = "Incorrect current password.";
-            errCurrent.classList.remove('error-hidden');
-            currentPassInput.classList.add('input-error');
-            hasError = true;
-        }
+        currentPassToSend = currentPass;
+        newPassToSend = newPass;
 
         const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
         if (!passRegex.test(newPass)) {
@@ -187,47 +149,54 @@ function updateUserRecord(type) {
 
         if (hasError) return;
 
-        users[userIndex].password = newPass;
-
         currentPassInput.value = '';
         newPassInput.value = '';
         confirmPassInput.value = '';
-
-        closeAccountModal('password-modal');
     }
 
-    localStorage.setItem('pace_users', JSON.stringify(users));
-    localStorage.setItem('pace_current_user', JSON.stringify(users[userIndex]));
     loadAccountData();
     if (typeof renderUserMenu === 'function') renderUserMenu();
+
+    if (type === 'personal') closeAccountModal('personal-modal');
+    if (type === 'account') closeAccountModal('account-modal');
+    if (type === 'password') closeAccountModal('password-modal');
+
+    fetch('Database/update-account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'update_profile',
+            email: window.currentUser.email,
+            firstName: window.currentUser.first_name || window.currentUser.firstName || '',
+            lastName: window.currentUser.last_name || window.currentUser.lastName || '',
+            phone: window.currentUser.phone || '',
+            username: window.currentUser.username || '',
+            currentPassword: currentPassToSend,
+            newPassword: newPassToSend
+        })
+    }).then(res => res.json()).then(data => {
+        if (!data.success && data.message === 'wrong_password') {
+            alert("Database Error: The current password you entered is incorrect!");
+        }
+    });
 }
-/* UPDATE USER RECORD FUNCTION END */
 
-/* PHONE NUMBER INPUT MASK START */
 const phoneInput = document.getElementById('acc-phone');
-
 if (phoneInput) {
     phoneInput.addEventListener('input', function (e) {
         let numbersOnly = this.value.replace(/\D/g, '');
-
         numbersOnly = numbersOnly.substring(0, 9);
-
         let formatted = '';
         if (numbersOnly.length > 0) formatted = numbersOnly.substring(0, 2);
         if (numbersOnly.length > 2) formatted += ' ' + numbersOnly.substring(2, 5);
         if (numbersOnly.length > 5) formatted += ' ' + numbersOnly.substring(5, 9);
-
         this.value = formatted;
     });
 }
-/* PHONE NUMBER INPUT MASK END */
 
-/* SIDEBAR PROFILE HELPER START */
 function updateSidebarProfile(user) {
-    // FIX: Safely grab the names from the new database format
     let fName = String(user.first_name || user.firstName || 'Customer');
     let lName = String(user.last_name || user.lastName || '');
-
     document.getElementById('sidebar-name').innerText = `${fName} ${lName}`.trim();
     document.getElementById('sidebar-email').innerText = user.email;
     
@@ -235,85 +204,61 @@ function updateSidebarProfile(user) {
     const imgEl = document.getElementById('sidebar-img');
     const deleteBtn = document.getElementById('delete-photo-btn');
 
-    if (user.profilePic) {
-        imgEl.src = user.profilePic;
+    // FIX: Check for both camelCase and snake_case database column names!
+    let savedPhoto = user.profilePic || user.profile_pic;
+
+    if (savedPhoto) {
+        imgEl.src = savedPhoto;
         imgEl.style.display = 'block';
         initialsEl.style.display = 'none';
         if (deleteBtn) deleteBtn.style.display = 'flex';
     } else {
-        // Force them to strings so charAt never crashes
         const firstInitial = fName.length > 0 ? fName.charAt(0) : 'C';
         const lastInitial = lName.length > 0 ? lName.charAt(0) : '';
-        
         initialsEl.innerText = (firstInitial + lastInitial).toUpperCase();
         initialsEl.style.display = 'flex';
         imgEl.style.display = 'none';
         if (deleteBtn) deleteBtn.style.display = 'none';
     }
 }
-/* SIDEBAR PROFILE HELPER END */
 
-/* MODAL OPEN AND CLOSE CONTROLS START */
 window.openAccountModal = function (modalId) {
     const modal = document.getElementById(modalId);
     const nav = document.querySelector('.navbar-section');
-
     if (modal) {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-
         document.body.style.overflow = 'hidden';
         document.body.style.paddingRight = `${scrollbarWidth}px`;
         if (nav) nav.style.right = `${scrollbarWidth}px`;
-
         modal.showModal();
     }
 };
 
 window.closeAccountModal = function (modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.close();
-    }
+    if (modal) modal.close();
 };
 
 document.querySelectorAll('.account-dialog').forEach(dialog => {
     dialog.addEventListener('close', () => {
         const nav = document.querySelector('.navbar-section');
-
         document.body.style.overflow = '';
         document.body.style.paddingRight = '0px';
         if (nav) nav.style.right = '0px';
-
         const form = dialog.querySelector('form');
         if (form) {
-
-            if (dialog.id === 'password-modal') {
-                form.reset();
-            } else {
-                loadAccountData();
-            }
-
-            form.querySelectorAll('.input-error').forEach(input => {
-                input.classList.remove('input-error');
-            });
-
-            form.querySelectorAll('.account-error-text').forEach(errorText => {
-                errorText.classList.add('error-hidden');
-            });
-
-            form.querySelectorAll('.account-helper-text').forEach(helper => {
-                helper.classList.remove('text-error');
-            });
+            if (dialog.id === 'password-modal') form.reset();
+            else loadAccountData();
+            form.querySelectorAll('.input-error').forEach(input => input.classList.remove('input-error'));
+            form.querySelectorAll('.account-error-text').forEach(errorText => errorText.classList.add('error-hidden'));
+            form.querySelectorAll('.account-helper-text').forEach(helper => helper.classList.remove('text-error'));
         }
     });
 });
-/* MODAL OPEN AND CLOSE CONTROLS END */
 
-/* DELETE ACCOUNT FUNCTION START */
 window.openDeleteAccountModal = function () {
     const modal = document.getElementById('delete-account-modal');
     const nav = document.querySelector('.navbar-section');
-
     if (modal) {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
         document.body.style.overflow = 'hidden';
@@ -325,29 +270,26 @@ window.openDeleteAccountModal = function () {
 
 window.closeDeleteAccountModal = function () {
     const modal = document.getElementById('delete-account-modal');
-    if (modal) {
-        modal.close(); 
-    }
+    if (modal) modal.close(); 
 };
 
 window.executeDeleteAccount = function () {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-
-    users = users.filter(u => u.email !== currentUser.email);
-
-    localStorage.setItem('pace_users', JSON.stringify(users));
-    localStorage.removeItem('pace_current_user');
-
-    window.location.href = "homepage.html";
+    if (!window.currentUser) return;
+    fetch('Database/update-user-account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', email: window.currentUser.email })
+    }).then(() => {
+        fetch('Database/logout.php').then(() => {
+            window.currentUser = null;
+            window.location.href = "homepage.html";
+        });
+    });
 };
-/* DELETE ACCOUNT FUNCTION END */
 
-/* DELETE PROFILE PHOTO MODAL START */
 window.openDeletePhotoModal = function () {
     const modal = document.getElementById('delete-photo-modal');
     const nav = document.querySelector('.navbar-section');
-
     if (modal) {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
         document.body.style.overflow = 'hidden';
@@ -360,7 +302,6 @@ window.openDeletePhotoModal = function () {
 window.closeDeletePhotoModal = function () {
     const modal = document.getElementById('delete-photo-modal');
     const nav = document.querySelector('.navbar-section');
-    
     if (modal) {
         modal.close();
         document.body.style.overflow = '';
@@ -370,26 +311,16 @@ window.closeDeletePhotoModal = function () {
 };
 
 window.executeDeletePhoto = function() {
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser) return;
+    if (!window.currentUser) return;
 
-    delete currentUser.profilePic;
-
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
-    if (userIndex > -1) {
-        delete users[userIndex].profilePic;
-        localStorage.setItem('pace_users', JSON.stringify(users));
-    }
-
-    localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-    updateSidebarProfile(currentUser);
+    delete window.currentUser.profilePic;
+    updateSidebarProfile(window.currentUser);
     if (typeof renderUserMenu === 'function') renderUserMenu();
-    
-    const photoUpload = document.getElementById('profile-upload');
-    if(photoUpload) photoUpload.value = '';
-
     closeDeletePhotoModal();
-};
 
-/* DELETE PROFILE PHOTO MODAL END */
+    fetch('Database/update-account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_photo', email: window.currentUser.email })
+    });
+};

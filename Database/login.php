@@ -19,7 +19,7 @@ $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
     $user = $result->fetch_assoc();
-    
+
     // Check if the account is blocked
     if ($user['status'] === 'Blocked') {
         echo json_encode(['success' => false, 'message' => 'account_blocked', 'role' => $user['role']]);
@@ -28,14 +28,24 @@ if ($result->num_rows > 0) {
 
     // Verify the encrypted password
     if (password_verify($passwordInput, $user['password'])) {
-        
+
         // Start a secure server session
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_role'] = $user['role'];
-        
+        $_SESSION['user_email'] = $user['email'];
+
         // Remove the password from the array before sending it back to JavaScript for security
-        unset($user['password']); 
-        
+        unset($user['password']);
+
+        // FIX: Decode arrays so the frontend doesn't crash on login!
+        $user['addresses'] = isset($user['addresses']) ? json_decode($user['addresses'], true) ?: [] : [];
+        $user['payments'] = isset($user['payment_methods']) ? json_decode($user['payment_methods'], true) ?: [] : [];
+        $user['cart'] = isset($user['cart']) ? json_decode($user['cart'], true) ?: [] : [];
+        $user['wishlist'] = isset($user['wishlist']) ? json_decode($user['wishlist'], true) ?: [] : [];
+        $user['notifications'] = isset($user['notifications']) ? json_decode($user['notifications'], true) ?: [] : [];
+        $user['chatHistory'] = isset($user['chatHistory']) ? json_decode($user['chatHistory'], true) ?: [] : [];
+        $user['orderHistory'] = isset($user['orderHistory']) ? json_decode($user['orderHistory'], true) ?: [] : [];
+
         echo json_encode(['success' => true, 'user' => $user]);
     } else {
         echo json_encode(['success' => false, 'message' => 'wrong_password']);
@@ -45,4 +55,3 @@ if ($result->num_rows > 0) {
 }
 
 $conn->close();
-?>

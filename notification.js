@@ -1,12 +1,12 @@
 /* NOTIFICATION INITIALIZATION */
 window.addEventListener('DOMContentLoaded', () => {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-
-    if (currentUser && document.getElementById('notification-list')) {
-        renderNotification(currentUser);
-    }
+    // Tiny delay so global.js has time to populate window.currentUser
+    setTimeout(() => {
+        if (window.currentUser && document.getElementById('notification-list')) {
+            renderNotification(window.currentUser);
+        }
+    }, 100);
 });
-
 
 /* NOTIFICATION RENDERING LOGIC START */
 function renderNotification(user) {
@@ -73,22 +73,20 @@ function renderNotification(user) {
 
 /* NOTIFICATION INTERACTION LOGIC START */
 window.handleGroupClick = function (orderId) {
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
+    if (!window.currentUser || !window.currentUser.notifications) return;
     let hasChanges = false;
 
-    currentUser.notifications.forEach(n => {
+    window.currentUser.notifications.forEach(n => {
         if (n.message.includes(orderId) && !n.read) { n.read = true; hasChanges = true; }
     });
 
     if (hasChanges) {
-        let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-        let userIndex = users.findIndex(u => u.email === currentUser.email);
-        if (userIndex > -1) {
-            users[userIndex].notifications = currentUser.notifications;
-            localStorage.setItem('pace_users', JSON.stringify(users));
+        // --- SYNC STATUS DIRECTLY TO MYSQL ---
+        if (window.syncNotificationsToDatabase) {
+            window.syncNotificationsToDatabase(window.currentUser.email, window.currentUser.notifications);
         }
-        localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-        renderNotification(currentUser);
+
+        renderNotification(window.currentUser);
         if (typeof renderUserMenu === 'function') renderUserMenu();
     }
 
@@ -98,20 +96,16 @@ window.handleGroupClick = function (orderId) {
 };
 
 window.markAllAsRead = function () {
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser || !currentUser.notifications) return;
+    if (!window.currentUser || !window.currentUser.notifications) return;
 
-    currentUser.notifications.forEach(n => n.read = true);
+    window.currentUser.notifications.forEach(n => n.read = true);
 
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
-    if (userIndex > -1) {
-        users[userIndex].notifications = currentUser.notifications;
-        localStorage.setItem('pace_users', JSON.stringify(users));
+    // --- SYNC STATUS DIRECTLY TO MYSQL ---
+    if (window.syncNotificationsToDatabase) {
+        window.syncNotificationsToDatabase(window.currentUser.email, window.currentUser.notifications);
     }
 
-    localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-    renderNotification(currentUser);
+    renderNotification(window.currentUser);
     if (typeof renderUserMenu === 'function') renderUserMenu();
 };
 /* NOTIFICATION INTERACTION LOGIC END */

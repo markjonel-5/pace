@@ -6,7 +6,8 @@ const itemsPerPage = 4;
 let currentFilteredProducts = [];
 let currentDeleteId = null;
 let currentStockFilter = 'ALL';
-let tempStockState = {}; // Used to preserve size quantities if admin misclicks category
+let tempStockState = {}; 
+window.adminProductsData = []; // LIVE MEMORY CACHE
 
 // SIZE CONFIGURATION DICTIONARY
 const sizeConfig = {
@@ -19,36 +20,32 @@ const sizeConfig = {
 // 2. PAGE INITIALIZATION & SECURITY
 // ===============================================
 window.addEventListener('DOMContentLoaded', () => {
-    // SECURITY CHECK
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    if (!currentUser || currentUser.role !== 'admin') {
-        window.location.href = "login.html";
-        return;
-    }
+    // SECURITY CHECK & DATA LOAD
+    fetch('Database/fetch-session.php?nocache=' + new Date().getTime())
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success || data.user.role !== 'admin') {
+                window.location.href = "login.html";
+                return;
+            }
+            window.currentUser = data.user;
 
-    // FIX: Safely grab names using BOTH the new database format and old format
-    let fName = currentUser.first_name || currentUser.firstName || 'Admin';
-    let lName = currentUser.last_name || currentUser.lastName || '';
-    
-    // Force to strings so .charAt() never crashes
-    fName = String(fName);
-    lName = String(lName);
+            let fName = String(window.currentUser.first_name || window.currentUser.firstName || 'Admin');
+            let lName = String(window.currentUser.last_name || window.currentUser.lastName || '');
+            const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
 
-    const firstInitial = fName.length > 0 ? fName.charAt(0) : 'A';
-    const lastInitial = lName.length > 0 ? lName.charAt(0) : '';
-    const initials = (firstInitial + lastInitial).toUpperCase();
+            const sidebarInitials = document.getElementById('sidebar-initials');
+            const adminNameDisplay = document.getElementById('admin-name-display');
+            if (sidebarInitials) sidebarInitials.innerText = initials;
+            if (adminNameDisplay) adminNameDisplay.innerText = `${fName} ${lName}`.trim();
 
-    // Set Sidebar Name & Initials
-    const sidebarInitials = document.getElementById('sidebar-initials');
-    const adminNameDisplay = document.getElementById('admin-name-display');
-    if (sidebarInitials) sidebarInitials.innerText = initials;
-    if (adminNameDisplay) adminNameDisplay.innerText = `${fName} ${lName}`.trim();
+            const popupName = document.getElementById('popup-admin-name');
+            const popupInitials = document.getElementById('popup-initials');
+            if (popupName) popupName.innerText = `${fName} ${lName}`.trim();
+            if (popupInitials) popupInitials.innerText = initials;
 
-    // Set Popup Name and Initials dynamically based on the logged-in admin
-    const popupName = document.getElementById('popup-admin-name');
-    const popupInitials = document.getElementById('popup-initials');
-    if (popupName) popupName.innerText = `${fName} ${lName}`.trim();
-    if (popupInitials) popupInitials.innerText = initials;
+            loadProducts();
+        });
 
     // SEARCH LISTENER
     const searchInput = document.getElementById('products-search-input');
@@ -68,20 +65,15 @@ window.addEventListener('DOMContentLoaded', () => {
             generateSizeGrid(e.target.value);
         });
     }
-
-    // INITIALIZE TABLE
-    loadProducts();
 });
 
 // ===============================================
 // 3. STATS, DATA LOADING & HELPER FUNCTIONS
 // ===============================================
 function getTotalStock(stockVal) {
-    // Legacy support (if stock is still a single number)
     if (typeof stockVal === 'number' || typeof stockVal === 'string') {
         return parseInt(stockVal) || 0;
     }
-    // New nested object support
     if (typeof stockVal === 'object' && stockVal !== null) {
         return Object.values(stockVal).reduce((total, qty) => total + (parseInt(qty) || 0), 0);
     }
@@ -89,13 +81,11 @@ function getTotalStock(stockVal) {
 }
 
 function loadProducts() {
-    // Ask the PHP bridge for the latest database info
-    fetch('Database/fetch-products.php')
+    fetch('Database/fetch-products.php?nocache=' + new Date().getTime())
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Save it locally so your table filters and pagination still work perfectly!
-            localStorage.setItem('pace_products', JSON.stringify(data.products));
+            window.adminProductsData = data.products; // Save to live memory!
             renderProductStats(data.products);
             filterProducts();
         }
@@ -142,13 +132,12 @@ window.filterByStock = function(status, element) {
 };
 
 function filterProducts() {
-    let products = JSON.parse(localStorage.getItem('pace_products')) || [];
+    let products = window.adminProductsData || [];
     const searchVal = document.getElementById('products-search-input').value.toLowerCase();
     const categoryVal = document.getElementById('filter-category').value;
 
     let filtered = products;
 
-    // Filter by Stock Status
     if (currentStockFilter === 'LOW') {
         filtered = filtered.filter(p => {
             let s = getTotalStock(p.stock);
@@ -158,14 +147,12 @@ function filterProducts() {
         filtered = filtered.filter(p => getTotalStock(p.stock) === 0);
     }
 
-    // Filter by Category
     if (categoryVal === 'NEW') {
         filtered = filtered.filter(p => p.isNew === true);
     } else if (categoryVal !== 'ALL') {
         filtered = filtered.filter(p => p.type === categoryVal);
     }
 
-    // Filter by Search Query
     if (searchVal.trim() !== '') {
         filtered = filtered.filter(p => 
             p.name.toLowerCase().includes(searchVal) || 
@@ -261,12 +248,10 @@ window.goToPage = function(page) {
 // ===============================================
 let shoeImage = []; 
 
-// DYNAMIC SIZE GRID GENERATOR
 function generateSizeGrid(category, existingStock = null) {
     const container = document.getElementById('size-stock-container');
     const sizes = sizeConfig[category] || [];
     
-    // Merge existing stock into temporary state to preserve data during misclicks
     if (existingStock && typeof existingStock === 'object') {
         tempStockState = { ...tempStockState, ...existingStock };
     }
@@ -284,7 +269,6 @@ function generateSizeGrid(category, existingStock = null) {
     html += '</div>';
     container.innerHTML = html;
 
-    // Attach listeners to preserve values instantly as user types
     container.querySelectorAll('.size-qty-input').forEach(input => {
         input.addEventListener('input', (e) => {
             tempStockState[e.target.dataset.size] = parseInt(e.target.value) || 0;
@@ -300,14 +284,13 @@ window.openProductModal = function(productId = null) {
 
     form.reset(); 
     shoeImage = []; 
-    tempStockState = {}; // Clear temp stock state
+    tempStockState = {}; 
     document.getElementById('admin-media-error').style.display = 'none';
     renderAdminPhotoPreviews(); 
 
     if (productId) {
         title.innerText = "Edit Product";
-        let products = JSON.parse(localStorage.getItem('pace_products')) || [];
-        let p = products.find(item => item.id === productId);
+        let p = window.adminProductsData.find(item => item.id === productId);
         
         if (p) {
             document.getElementById('prod-original-id').value = p.id;
@@ -317,7 +300,6 @@ window.openProductModal = function(productId = null) {
             document.getElementById('prod-price').value = parseFloat(p.price.replace(/,/g, ''));
             document.getElementById('prod-isNew').checked = p.isNew;
             
-            // Build the size grid based on current saved nested stock
             let savedStock = typeof p.stock === 'object' ? p.stock : {};
             generateSizeGrid(p.type, savedStock);
             
@@ -328,8 +310,8 @@ window.openProductModal = function(productId = null) {
     } else {
         title.innerText = "Add New Product";
         document.getElementById('prod-original-id').value = ""; 
-        document.getElementById('prod-category').value = "MEN"; // Default
-        generateSizeGrid('MEN'); // Generate fresh grid
+        document.getElementById('prod-category').value = "MEN"; 
+        generateSizeGrid('MEN'); 
     }
 
     if (modal) {
@@ -352,7 +334,6 @@ window.closeProductModal = function() {
     }
 };
 
-// --- PHOTO UPLOAD LOGIC ---
 document.getElementById('admin-upload-photos')?.addEventListener('change', function(e) {
     const files = Array.from(e.target.files);
     const errorMsg = document.getElementById('admin-media-error');
@@ -448,7 +429,6 @@ window.saveProduct = function(event) {
         hover: shoeImage[1]
     };
 
-    /// Send it to the Database!
     fetch('Database/save-product.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -460,13 +440,12 @@ window.saveProduct = function(event) {
         submitBtn.style.pointerEvents = "auto";
         if (data.success) {
             closeProductModal();
-            loadProducts(); // Refresh the table automatically!
+            loadProducts(); 
         } else {
             alert("Error saving: " + data.message);
         }
     })
     .catch(error => {
-        // FIX: Unfreeze the button if the server crashes!
         submitBtn.innerText = "Save Product";
         submitBtn.style.pointerEvents = "auto";
         console.error('Error:', error);
@@ -478,8 +457,7 @@ window.saveProduct = function(event) {
 // 6. DELETE PRODUCT MODAL LOGIC
 // ===============================================
 window.openDeleteModal = function(productId) {
-    let products = JSON.parse(localStorage.getItem('pace_products')) || [];
-    let p = products.find(item => String(item.id) === String(productId));
+    let p = window.adminProductsData.find(item => String(item.id) === String(productId));
     
     const nav = document.querySelector('.admin-navbar-section');
     const modal = document.getElementById('delete-modal');
@@ -513,7 +491,6 @@ window.closeDeleteModal = function() {
 window.executeDelete = function() {
     if (!currentDeleteId) return;
 
-    // Send the Delete request to MySQL
     fetch('Database/delete-product.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -522,30 +499,7 @@ window.executeDelete = function() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Keep your awesome logic that removes it from users' carts and wishlists locally
-            let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-            let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-            let isCurrentUserUpdated = false;
-
-            users = users.map(user => {
-                if (user.cart) user.cart = user.cart.filter(item => String(item.productId) !== String(currentDeleteId));
-                if (user.wishlist) user.wishlist = user.wishlist.filter(item => String(item.id) !== String(currentDeleteId));
-                if (currentUser && currentUser.email === user.email) {
-                    currentUser = user;
-                    isCurrentUserUpdated = true;
-                }
-                return user;
-            });
-
-            localStorage.setItem('pace_users', JSON.stringify(users));
-            if (isCurrentUserUpdated) localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-
-            let guestCart = JSON.parse(localStorage.getItem('pace_guest_cart')) || [];
-            localStorage.setItem('pace_guest_cart', JSON.stringify(guestCart.filter(item => String(item.productId) !== String(currentDeleteId))));
-
-            let guestWishlist = JSON.parse(localStorage.getItem('pace_guest_wishlist')) || [];
-            localStorage.setItem('pace_guest_wishlist', JSON.stringify(guestWishlist.filter(item => String(item.id) !== String(currentDeleteId))));
-            
+            // FIX: Removed the massive localStorage loop! global.js already auto-purges dead products from carts.
             closeDeleteModal();
             loadProducts(); // Refresh the table
         }

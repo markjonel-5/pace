@@ -1,52 +1,74 @@
 /* ORDER HISTORY INITIALIZATION */
 window.addEventListener('DOMContentLoaded', () => {
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
+    setTimeout(() => {
+        if (!window.currentUser) {
+            window.location.href = 'login.html';
+            return;
+        }
 
-    if (!currentUser) {
-        window.location.href = 'login.html';
-        return;
-    }
+        // FETCH LIVE ORDERS WITH CACHE BUSTER!
+        fetch('Database/fetch-orders.php?nocache=' + new Date().getTime())
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                let liveOrders = data.orders;
+                let isUpdated = false;
 
-    // --- NEW: SYNC LIVE STATUS FROM MYSQL BEFORE RENDERING ---
-    fetch('Database/fetch-orders.php')
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            let liveOrders = data.orders;
-            let isUpdated = false;
+                if (window.currentUser.orderHistory) {
+                    window.currentUser.orderHistory.forEach(localOrder => {
+                        let liveOrder = liveOrders.find(o => String(o.id) === String(localOrder.id));
+                        
+                        // IF ADMIN SHIPPED IT, UPDATE IT AND PUSH A NOTIFICATION!
+                        if (liveOrder && liveOrder.status !== localOrder.status) {
+                            localOrder.status = liveOrder.status;
+                            isUpdated = true;
 
-            if (currentUser.orderHistory) {
-                currentUser.orderHistory.forEach(localOrder => {
-                    let liveOrder = liveOrders.find(o => o.id === localOrder.id);
-                    // If MySQL has a newer status (like "Completed"), update the local storage!
-                    if (liveOrder && liveOrder.status !== localOrder.status) {
-                        localOrder.status = liveOrder.status;
-                        isUpdated = true;
+                            let notifTitle = "Order Update";
+                            let notifMsg = `Your order ${localOrder.id} status is now: ${liveOrder.status}`;
+                            
+                            if (liveOrder.status === 'To Receive') {
+                                notifTitle = "Order Shipped!";
+                                notifMsg = `Your order ${localOrder.id} is on the way. Keep your lines open for delivery!`;
+                            } else if (liveOrder.status === 'Completed') {
+                                notifTitle = "Order Completed";
+                                notifMsg = `Your order ${localOrder.id} has been marked as received.`;
+                            }
+
+                            window.currentUser.notifications = window.currentUser.notifications || [];
+                            window.currentUser.notifications.unshift({
+                                id: 'NOTIF-' + Date.now() + Math.floor(Math.random() * 1000),
+                                title: notifTitle,
+                                message: notifMsg,
+                                date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                                read: false
+                            });
+                        }
+                    });
+                }
+
+                // Push everything to MySQL
+                if (isUpdated) {
+                    fetch('Database/update-account.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'update_order_history', email: window.currentUser.email, orderHistory: window.currentUser.orderHistory })
+                    });
+                    if (window.syncNotificationsToDatabase) {
+                        window.syncNotificationsToDatabase(window.currentUser.email, window.currentUser.notifications);
                     }
-                });
-            }
-
-            // Save the updated statuses back to the browser memory
-            if (isUpdated) {
-                localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
-                let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-                let uIndex = users.findIndex(u => u.email === currentUser.email);
-                if (uIndex > -1) {
-                    users[uIndex] = currentUser;
-                    localStorage.setItem('pace_users', JSON.stringify(users));
+                    if (typeof renderNotification === 'function') renderNotification(window.currentUser);
                 }
             }
-        }
 
-        // Now safely render the page with the accurate synced data!
-        setupGlobalDialogs();
-        updateNotificationBadges(currentUser.orderHistory || []);
-
-        const listContainer = document.getElementById('order-history-list');
-        if (listContainer) {
-            setupOrderTabs();
-            renderOrderHistory('All');
-        }
+            setupGlobalDialogs();
+            updateNotificationBadges(window.currentUser.orderHistory || []);
+            const listContainer = document.getElementById('order-history-list');
+            if (listContainer) {
+                setupOrderTabs();
+                renderOrderHistory('All');
+            }
+        })
+        .catch(err => console.error("Error syncing orders:", err));
 
         const reviewTextInput = document.getElementById('review-text');
         if (reviewTextInput) {
@@ -56,8 +78,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (errorMsg) errorMsg.style.display = 'none';
             });
         }
-    })
-    .catch(err => console.error("Error syncing orders:", err));
+    }, 100);
 });
 
 /* GLOBAL UI FUNCTIONS START */
@@ -99,13 +120,12 @@ window.closeAccountModal = function (modalId) {
 };
 /* GLOBAL UI FUNCTIONS END */
 
-
 /* CORE ORDER LOGIC START */
 const formatCurrency = (num) => parseFloat(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 window.openOrderDetails = function (orderId) {
-    const user = JSON.parse(localStorage.getItem('pace_current_user'));
-    const order = user.orderHistory.find(o => o.id === orderId);
+    if (!window.currentUser) return;
+    const order = window.currentUser.orderHistory.find(o => o.id === orderId);
     if (!order) return;
 
     window.globalActiveOrderId = order.id;
@@ -127,13 +147,11 @@ window.openOrderDetails = function (orderId) {
            </div>`;
 
     const itemsHTML = order.items.map((item, index) => {
-        // Check if status is completed and if the item is already reviewed
         let reviewActionHTML = '';
         if (displayStatus === 'Completed') {
             if (item.reviewed) {
                 reviewActionHTML = `<span style="display: inline-block; margin-top: 8px; font-size: 13px; color: #1b8f50; font-weight: 600;"><i class="fi fi-rs-check-circle" style="margin-right: 5px; vertical-align: middle;"></i>Reviewed</span>`;
             } else {
-                // Pass order ID, item index, name, and image to the modal
                 reviewActionHTML = `<button onclick="openWriteReviewModal('${order.id}', ${index}, '${item.name.replace(/'/g, "\\'")}', '${item.image}')" style="margin-top: 8px; padding: 6px 12px; background: white; color: var(--brand-color); border: 1px solid var(--brand-color); border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s;">Write Review</button>`;
             }
         }
@@ -173,49 +191,32 @@ window.openOrderDetails = function (orderId) {
 };
 
 window.updateOrderStatus = function (newStatus, title, messageTemplate) {
-    if (!window.globalActiveOrderId) return;
+    if (!window.globalActiveOrderId || !window.currentUser) return;
     
-    // Save the order ID to a variable
     let orderId = window.globalActiveOrderId;
 
-    // --- NEW: SEND UPDATE TO LIVE DATABASE! ---
+    // --- SEND UPDATE TO LIVE DATABASE! ---
     fetch('Database/update-order-status.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: orderId, status: newStatus })
     }).catch(err => console.error("Database Update Error:", err));
 
-    // --- Keep the rest of your local updates exactly the same ---
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-
-    let targetOrder = currentUser.orderHistory.find(o => o.id === orderId);
+    // Update live memory locally for instant UI changes
+    let targetOrder = window.currentUser.orderHistory.find(o => o.id === orderId);
     if (targetOrder) targetOrder.status = newStatus;
 
-    currentUser.notifications = currentUser.notifications || [];
-    currentUser.notifications.unshift({
+    window.currentUser.notifications = window.currentUser.notifications || [];
+    window.currentUser.notifications.unshift({
         id: 'NOTIF-' + Date.now(), title,
         message: messageTemplate.replace('{id}', orderId),
         date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
         read: false
     });
 
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
-    if (userIndex > -1) {
-        let dbOrder = users[userIndex].orderHistory.find(o => o.id === orderId);
-        if (dbOrder) dbOrder.status = newStatus;
-        users[userIndex].notifications = currentUser.notifications;
-        localStorage.setItem('pace_users', JSON.stringify(users));
+    if (window.syncNotificationsToDatabase) {
+        window.syncNotificationsToDatabase(window.currentUser.email, window.currentUser.notifications);
     }
-
-    let allOrders = JSON.parse(localStorage.getItem('pace_orders')) || [];
-    let adminOrderIndex = allOrders.findIndex(o => o.id === orderId);
-    if (adminOrderIndex > -1) {
-        allOrders[adminOrderIndex].status = newStatus;
-        localStorage.setItem('pace_orders', JSON.stringify(allOrders));
-    }
-
-    localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
 
     closeAccountModal(newStatus === 'Completed' ? 'receive-confirm-modal' : 'cancel-confirm-modal');
     closeAccountModal('order-details-modal');
@@ -225,13 +226,12 @@ window.updateOrderStatus = function (newStatus, title, messageTemplate) {
         const activeTab = document.querySelector('.order-tab.active');
         renderOrderHistory(activeTab ? activeTab.getAttribute('data-status') : 'All');
     }
-    if (typeof renderNotification === 'function') renderNotification(currentUser);
+    if (typeof renderNotification === 'function') renderNotification(window.currentUser);
 };
 
 window.executeReceiveOrder = () => updateOrderStatus('Completed', 'Order Completed', 'Your order {id} has been marked as received. Thank you for shopping with PACE!');
 window.executeCancelOrder = () => updateOrderStatus('Cancelled', 'Order Cancelled', 'Your order {id} has been successfully cancelled.');
 /* CORE ORDER LOGIC END */
-
 
 /* ORDER HISTORY PAGE SPECIFIC */
 function setupOrderTabs() {
@@ -262,7 +262,9 @@ function updateNotificationBadges(orders) {
 }
 
 function renderOrderHistory(filterStatus) {
-    const allOrders = (JSON.parse(localStorage.getItem('pace_current_user')).orderHistory || []).slice().reverse();
+    if (!window.currentUser) return;
+    
+    const allOrders = (window.currentUser.orderHistory || []).slice().reverse();
     updateNotificationBadges(allOrders);
 
     const filteredOrders = filterStatus === 'All' ? allOrders : allOrders.filter(o => (o.status === 'Processing' ? 'To Ship' : o.status) === filterStatus);
@@ -372,7 +374,7 @@ function setupReviewStars() {
 }
 
 // MEDIA UPLOAD LOGIC
-document.getElementById('upload-photos').addEventListener('change', function (e) {
+document.getElementById('upload-photos')?.addEventListener('change', function (e) {
     const files = Array.from(e.target.files);
     const errorMsg = document.getElementById('media-error-msg');
 
@@ -383,7 +385,7 @@ document.getElementById('upload-photos').addEventListener('change', function (e)
     }
 
     files.forEach(file => {
-        if (file.size > 1 * 1024 * 1024) { // 1MB Limit for photo
+        if (file.size > 1 * 1024 * 1024) { 
             errorMsg.innerText = "Photo is too large (Max 1MB).";
             errorMsg.style.display = 'block';
             return;
@@ -399,7 +401,7 @@ document.getElementById('upload-photos').addEventListener('change', function (e)
     });
 });
 
-document.getElementById('upload-video').addEventListener('change', function (e) {
+document.getElementById('upload-video')?.addEventListener('change', function (e) {
     const file = e.target.files[0];
     const errorMsg = document.getElementById('media-error-msg');
     if (!file) return;
@@ -411,7 +413,7 @@ document.getElementById('upload-video').addEventListener('change', function (e) 
         return;
     }
 
-    if (file.size > 2 * 1024 * 1024) { // 2MB Limit for video
+    if (file.size > 2 * 1024 * 1024) { 
         errorMsg.innerText = "Video is too large (Max 2MB).";
         errorMsg.style.display = 'block';
         this.value = '';
@@ -471,7 +473,6 @@ window.removeVideo = function () {
     renderMediaPreviews();
 };
 
-// REVIEW MEDIA FULLSCREEN PREVIEW LOGIC
 window.openMediaPreview = function (src, type) {
     const modal = document.getElementById('media-fullscreen-modal');
     const container = document.getElementById('fullscreen-media-container');
@@ -494,14 +495,8 @@ window.openMediaPreview = function (src, type) {
 
     modal.showModal();
 
-    modal.onclick = function () {
-        closeMediaPreview();
-    };
-
-    modal.oncancel = function (e) {
-        e.preventDefault();
-        closeMediaPreview();
-    };
+    modal.onclick = function () { closeMediaPreview(); };
+    modal.oncancel = function (e) { e.preventDefault(); closeMediaPreview(); };
 };
 
 window.closeMediaPreview = function () {
@@ -522,6 +517,8 @@ window.closeMediaPreview = function () {
 };
 
 window.submitProductReview = function () {
+    if (!window.currentUser) return;
+    
     const textInput = document.getElementById('review-text');
     const text = textInput.value.trim();
     let hasError = false;
@@ -529,10 +526,7 @@ window.submitProductReview = function () {
     if (currentReviewRating === 0) {
         document.getElementById('review-rating-text').innerText = "Please select a rating";
         document.getElementById('review-rating-text').style.color = "#d9534f";
-
-        document.querySelectorAll('#review-star-container i').forEach(star => {
-            star.style.color = "#d9534f";
-        });
+        document.querySelectorAll('#review-star-container i').forEach(star => star.style.color = "#d9534f");
         hasError = true;
     }
     if (text === '') {
@@ -542,12 +536,10 @@ window.submitProductReview = function () {
     }
     if (hasError) return;
 
-    let currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
-
     const newFeedback = {
         id: "FB-" + Date.now(),
-        userEmail: currentUser.email,
-        userName: `${currentUser.first_name || currentUser.firstName} ${currentUser.last_name || currentUser.lastName || ''}`.trim(),
+        userEmail: window.currentUser.email,
+        userName: `${window.currentUser.first_name || window.currentUser.firstName} ${window.currentUser.last_name || window.currentUser.lastName || ''}`.trim(),
         productName: currentReviewProduct,
         rating: currentReviewRating,
         comment: text,
@@ -556,26 +548,25 @@ window.submitProductReview = function () {
         date: new Date().toLocaleDateString()
     };
 
-    let targetOrder = currentUser.orderHistory.find(o => o.id === currentReviewOrderId);
+    let targetOrder = window.currentUser.orderHistory.find(o => o.id === currentReviewOrderId);
     if (targetOrder && targetOrder.items[currentReviewItemIndex]) {
         targetOrder.items[currentReviewItemIndex].reviewed = true;
     }
-    localStorage.setItem('pace_current_user', JSON.stringify(currentUser));
+    
+    // Send updated order history (to mark item as reviewed) to database!
+    fetch('Database/update-account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_order_history', email: window.currentUser.email, orderHistory: window.currentUser.orderHistory })
+    });
 
-    let users = JSON.parse(localStorage.getItem('pace_users')) || [];
-    let userIndex = users.findIndex(u => u.email === currentUser.email);
-    if (userIndex > -1) {
-        let dbOrder = users[userIndex].orderHistory.find(o => o.id === currentReviewOrderId);
-        if (dbOrder && dbOrder.items[currentReviewItemIndex]) {
-            dbOrder.items[currentReviewItemIndex].reviewed = true;
-        }
-        localStorage.setItem('pace_users', JSON.stringify(users));
-    }
-
-    let globalFeedbacks = JSON.parse(localStorage.getItem('pace_global_feedbacks')) || [];
-    globalFeedbacks.unshift(newFeedback);
-    localStorage.setItem('pace_global_feedbacks', JSON.stringify(globalFeedbacks));
-
-    closeAccountModal('write-review-modal');
-    openOrderDetails(currentReviewOrderId);
+    // --- NEW: SEND REVIEW DIRECTLY TO MYSQL! ---
+    fetch('Database/submit-review.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFeedback)
+    }).then(() => {
+        closeAccountModal('write-review-modal');
+        openOrderDetails(currentReviewOrderId);
+    });
 };
