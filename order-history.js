@@ -28,20 +28,26 @@ window.addEventListener('DOMContentLoaded', () => {
                             
                             if (liveOrder.status === 'To Receive') {
                                 notifTitle = "Order Shipped!";
-                                notifMsg = `Your order ${localOrder.id} is on the way. Keep your lines open for delivery!`;
+                                notifMsg = `Your order ${localOrder.id} is out for delivery or ready for in-store collection.`;
                             } else if (liveOrder.status === 'Completed') {
                                 notifTitle = "Order Completed";
-                                notifMsg = `Your order ${localOrder.id} has been marked as received.`;
+                                notifMsg = `Your order ${localOrder.id} has been marked as completed. Thank you for shopping with PACE!`;
                             }
 
+                            // --- ANG DUPLICATE CHECKER ---
                             window.currentUser.notifications = window.currentUser.notifications || [];
-                            window.currentUser.notifications.unshift({
-                                id: 'NOTIF-' + Date.now() + Math.floor(Math.random() * 1000),
-                                title: notifTitle,
-                                message: notifMsg,
-                                date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-                                read: false
-                            });
+                            let isDuplicate = window.currentUser.notifications.some(n => n.message === notifMsg);
+
+                            // Kung wala pa 'yung notification na 'to, saka lang siya mag-a-add!
+                            if (!isDuplicate) {
+                                window.currentUser.notifications.unshift({
+                                    id: 'NOTIF-' + Date.now() + Math.floor(Math.random() * 1000),
+                                    title: notifTitle,
+                                    message: notifMsg,
+                                    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                                    read: false
+                                });
+                            }
                         }
                     });
                 }
@@ -206,13 +212,20 @@ window.updateOrderStatus = function (newStatus, title, messageTemplate) {
     let targetOrder = window.currentUser.orderHistory.find(o => o.id === orderId);
     if (targetOrder) targetOrder.status = newStatus;
 
+    // --- ANG DUPLICATE CHECKER ---
+    let exactMessage = messageTemplate.replace('{id}', orderId);
     window.currentUser.notifications = window.currentUser.notifications || [];
-    window.currentUser.notifications.unshift({
-        id: 'NOTIF-' + Date.now(), title,
-        message: messageTemplate.replace('{id}', orderId),
-        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-        read: false
-    });
+    let isDuplicate = window.currentUser.notifications.some(n => n.message === exactMessage);
+
+    if (!isDuplicate) {
+        window.currentUser.notifications.unshift({
+            id: 'NOTIF-' + Date.now(), 
+            title: title,
+            message: exactMessage,
+            date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+            read: false
+        });
+    }
 
     if (window.syncNotificationsToDatabase) {
         window.syncNotificationsToDatabase(window.currentUser.email, window.currentUser.notifications);
@@ -229,7 +242,7 @@ window.updateOrderStatus = function (newStatus, title, messageTemplate) {
     if (typeof renderNotification === 'function') renderNotification(window.currentUser);
 };
 
-window.executeReceiveOrder = () => updateOrderStatus('Completed', 'Order Completed', 'Your order {id} has been marked as received. Thank you for shopping with PACE!');
+window.executeReceiveOrder = () => updateOrderStatus('Completed', 'Order Completed', 'Your order {id} has been marked as completed. Thank you for shopping with PACE!');
 window.executeCancelOrder = () => updateOrderStatus('Cancelled', 'Order Cancelled', 'Your order {id} has been successfully cancelled.');
 /* CORE ORDER LOGIC END */
 
