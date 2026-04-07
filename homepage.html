@@ -118,6 +118,21 @@
 
     <div class="team-section" id="team-card"></div>
 
+    <dialog id="email-success-modal" class="account-dialog confirm-dialog">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon" style="color: #1b8f50;">
+                <i class="fi fi-rs-check-circle"></i>
+            </div>
+            <h3 style="font-size: 22px; color: var(--darkgray-text); margin-bottom: 10px;">Message Sent!</h3>
+            <p style="font-size: 14px; color: var(--gray-text); margin-bottom: 25px; text-align: center;">Thank you for
+                reaching out. Our team will get back to you soon.</p>
+            <div class="confirm-actions" style="justify-content: center; width: 100%;">
+                <button class="btn-confirm" style="background-color: #1b8f50; border-color: #1b8f50; flex: 1;"
+                    onclick="document.getElementById('email-success-modal').close()">OK</button>
+            </div>
+        </div>
+    </dialog>
+
     <div id="footer-container"></div>
 
     <script src="global.js"></script>

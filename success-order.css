@@ -95,14 +95,3 @@
     background-color: var(--darkgray-text);
     border-color: var(--darkgray-text);
 }
-
-.btn-secondary {
-    color: var(--brand-color);
-    border: 2px solid var(--brand-color);
-}
-
-.btn-secondary:hover {
-    background-color: var(--darkgray-text);
-    border: 2px solid var(--darkgray-text);
-    color: var(--bg-color);
-}

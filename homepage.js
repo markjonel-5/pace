@@ -139,15 +139,39 @@ document.addEventListener('DOMContentLoaded', () => {
         hpContactForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            const subjectInput = document.getElementById('contact-subject').value;
-            const message = document.getElementById('contact-message').value;
+            const submitBtn = hpContactForm.querySelector('.contact-btn');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = "SENDING...";
+            submitBtn.style.pointerEvents = "none";
 
-            const subject = encodeURIComponent(subjectInput);
-            const body = encodeURIComponent(message);
+            const subject = document.getElementById('contact-subject').value.trim();
+            const email = document.getElementById('contact-email').value.trim();
+            const message = document.getElementById('contact-message').value.trim();
 
-            window.location.href = `mailto:pace.store.admin@gmail.com?subject=${subject}&body=${body}`;
-
-            setTimeout(() => { this.reset(); }, 1000);
+            fetch('Database/send-email.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: subject, email: email, message: message })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Trigger the modal instead of the alert
+                    const modal = document.getElementById('email-success-modal');
+                    if (modal) modal.showModal();
+                    hpContactForm.reset();
+                } else {
+                    alert("Error: " + data.message);
+                }
+                submitBtn.innerText = originalText;
+                submitBtn.style.pointerEvents = "auto";
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Server error. Please try again later.");
+                submitBtn.innerText = originalText;
+                submitBtn.style.pointerEvents = "auto";
+            });
         });
     }
 });

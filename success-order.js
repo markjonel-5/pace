@@ -10,11 +10,4 @@ window.addEventListener('DOMContentLoaded', () => {
     } else if (displayElement) {
         displayElement.innerText = "ORDER NOT FOUND";
     }
-
-    const isGuest = urlParams.get('guest');
-    const historyBtn = document.getElementById('history-btn');
-
-    if (isGuest === 'true' && historyBtn) {
-        historyBtn.style.display = 'none';
-    }
 });

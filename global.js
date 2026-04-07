@@ -710,7 +710,7 @@ const chatFAQs = {
 
 function buildGlobalChat() {
 
-    const currentUser = JSON.parse(localStorage.getItem('pace_current_user'));
+    const currentUser = window.currentUser;
 
     const hiddenPages = ['chat-support.html', 'login.html', 'signup.html', 'checkout.html', 'admin-dashboard.html', 'admin-products.html', 'admin-orders.html', 'admin-users.html', 'admin-messages.html', 'admin-reports.html'];
     const currentPath = window.location.pathname;

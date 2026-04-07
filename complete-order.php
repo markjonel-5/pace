@@ -47,7 +47,6 @@ $conn->close();
 
                 <p class="email-notice">Your transaction is officially complete. We hope you enjoy your new PACE items!</p>
                 <div class="success-actions">
-                    <a href="order-history.html" class="btn-secondary">VIEW ORDER HISTORY</a>
                     <a href="homepage.html" class="btn-primary">CONTINUE SHOPPING</a>
                 </div>
             <?php else: ?>

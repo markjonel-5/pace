@@ -2,8 +2,8 @@
 header('Content-Type: application/json');
 require 'pace-database.php';
 
-// FIX: Fetch them in their natural insertion order
-$sql = "SELECT * FROM orders";
+// FIX: Sort strictly by the exact millisecond the order was created!
+$sql = "SELECT * FROM orders ORDER BY created_at DESC";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -28,9 +28,6 @@ if ($result->num_rows > 0) {
         ];
     }
 }
-
-// FIX: Flip the entire array upside down so the absolute newest is at the top!
-$orders = array_reverse($orders);
 
 echo json_encode(['success' => true, 'orders' => $orders]);
 $conn->close();

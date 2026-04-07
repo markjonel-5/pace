@@ -16,7 +16,8 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function fetchUsersFromDatabase() {
-    fetch('Database/fetch-users.php')
+    // Added ?nocache parameter to force fresh data load
+    fetch('Database/fetch-users.php?nocache=' + new Date().getTime())
         .then(res => res.json())
         .then(data => {
             if (data.success) {
