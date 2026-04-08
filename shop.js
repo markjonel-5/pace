@@ -89,7 +89,7 @@ function renderProducts(category, fixedLimit = null, randomize = false) {
                 </div>
                 <div class="product-price">
                     <p><i>${p.type}</i></p>
-                    <p>₱ ${p.price}</p>
+                    <p>\u20B1 ${p.price}</p>
                 </div>
                 <div class="product-btn">
                     <div class="wishlist"><button onclick="addToWishlist('${p.id}')"><i class="fi ${heartClass}"></i></button></div>

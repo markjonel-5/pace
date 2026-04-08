@@ -74,7 +74,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 });
 
                 // Populate Main Numbers
-                document.getElementById('rep-revenue').innerText = '₱ ' + totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById('rep-revenue').innerText = '\u20B1 ' + totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 });
                 document.getElementById('rep-orders').innerText = orders.length; 
                 document.getElementById('rep-customers').innerText = totalCustomers;
                 document.getElementById('rep-products').innerText = products.length;
@@ -132,7 +132,7 @@ window.addEventListener('DOMContentLoaded', () => {
                         const revHeight = (monthlyRev[index] / maxRev) * 100;
                         const ordHeight = (monthlyOrd[index] / maxOrd) * 100;
                         
-                        const revText = `₱ ${monthlyRev[index].toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+                        const revText = `\u20B1 ${monthlyRev[index].toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
                         const ordText = `${monthlyOrd[index]} Orders`;
 
                         return `

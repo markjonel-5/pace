@@ -92,9 +92,6 @@
                 <div class="checkout-box">
                     <div class="checkout-box-header">
                         <h3 class="checkout-box-title">4. Payment Method</h3>
-                        <button class="add-address-btn" onclick="openAccountModal('payment-modal')">
-                            <i class="fi fi-rr-plus"></i> Add Payment Method
-                        </button>
                     </div>
                     <div id="checkout-payment-content">
                     </div>
@@ -193,83 +190,8 @@
         </form>
     </dialog>
 
-    <dialog id="payment-modal" class="account-dialog">
-        <div class="dialog-header">
-            <h3>Add Payment Method</h3>
-            <button type="button" class="dialog-close" onclick="closeAccountModal('payment-modal')">&times;</button>
-        </div>
-        <form id="form-new-payment" class="dialog-form">
-            <div class="account-input-group">
-                <label style="margin-bottom: 10px; display:block;">Select Payment Type</label>
-                <div class="pm-type-options">
-                    <label class="pm-radio-label">
-                        <input type="radio" name="pm-type" value="Card" checked>
-                        <span class="pm-radio-btn"><i class="fi fi-rr-credit-card"></i> Card</span>
-                    </label>
-                    <label class="pm-radio-label">
-                        <input type="radio" name="pm-type" value="GCash">
-                        <span class="pm-radio-btn"><i class="fi fi-rr-smartphone"></i> GCash</span>
-                    </label>
-                    <label class="pm-radio-label">
-                        <input type="radio" name="pm-type" value="PayPal">
-                        <span class="pm-radio-btn"><i class="fi fi-brands-paypal"></i> PayPal</span>
-                    </label>
-                </div>
-            </div>
-            <div id="fields-card" class="pm-dynamic-fields active-fields">
-                <div class="account-input-group" style="margin-top: 15px;">
-                    <label>Name on Card</label>
-                    <input type="text" id="pm-card-name" class="account-input-field" placeholder="Juan dela Cruz">
-                </div>
-                <div class="account-input-group" style="margin-top: 15px;">
-                    <label>Card Number</label>
-                    <input type="text" id="pm-card-number" class="account-input-field" placeholder="0000 0000 0000 0000"
-                        maxlength="19">
-                    <p id="pm-card-number-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
-                </div>
-                <div class="account-form-row" style="margin-top: 15px;">
-                    <div class="account-input-group">
-                        <label>Expiry Date</label>
-                        <input type="text" id="pm-card-exp" class="account-input-field" placeholder="MM/YY"
-                            maxlength="5">
-                        <p id="pm-card-exp-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
-                    </div>
-                    <div class="account-input-group">
-                        <label>CVV/CVC</label>
-                        <div class="password-wrapper">
-                            <input type="password" id="pm-card-cvv" class="account-input-field" placeholder="123"
-                                maxlength="4">
-                        </div>
-                        <p id="pm-card-cvv-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
-                    </div>
-                </div>
-            </div>
-            <div id="fields-gcash" class="pm-dynamic-fields hidden-fields">
-                <div class="account-input-group" style="margin-top: 15px;">
-                    <label>GCash Registered Name</label>
-                    <input type="text" id="pm-gcash-name" class="account-input-field" placeholder="Juan dela Cruz">
-                </div>
-                <div class="account-input-group" style="margin-top: 15px;">
-                    <label>GCash Mobile Number</label>
-                    <div class="phone-input-wrapper">
-                        <span class="phone-prefix">+63 9</span>
-                        <input type="tel" id="pm-gcash-phone" class="account-input-field" placeholder="00 000 0000">
-                    </div>
-                    <p id="pm-gcash-error" class="account-error-text error-hidden" style="margin-top: 5px;"></p>
-                </div>
-            </div>
-            <div id="fields-paypal" class="pm-dynamic-fields hidden-fields">
-                <div class="account-input-group" style="margin-top: 15px;">
-                    <label>PayPal Email Address</label>
-                    <input type="email" id="pm-paypal-email" class="account-input-field" placeholder="juan@example.com">
-                </div>
-            </div>
-            <button type="submit" class="account-save-btn" style="margin-top: 25px;">Save Payment Method</button>
-        </form>
-    </dialog>
-
     <div id="footer-container"></div>
-    
+
     <script src="global.js"></script>
     <script src="checkout.js"></script>
 </body>

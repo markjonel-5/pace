@@ -83,7 +83,7 @@ function renderCartPage() {
                                 <button class="qty-btn" onclick="updateQuantity(${index}, 1)">+</button>
                             </div>
                         </div>
-                        <div class="cart-item-price">₱ ${formattedUnitPrice}</div>
+                        <div class="cart-item-price">\u20B1 ${formattedUnitPrice}</div>
                     </div>
                 </div>
             </div>`;
@@ -93,8 +93,8 @@ function renderCartPage() {
     if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
 
     const formattedTotal = subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('summary-subtotal').innerText = '₱ ' + formattedTotal;
-    document.getElementById('summary-total').innerText = '₱ ' + formattedTotal;
+    document.getElementById('summary-subtotal').innerText = '\u20B1 ' + formattedTotal;
+    document.getElementById('summary-total').innerText = '\u20B1 ' + formattedTotal;
 
     const deliveryElement = document.getElementById('summary-delivery');
     if (deliveryElement) {
@@ -102,7 +102,7 @@ function renderCartPage() {
             deliveryElement.innerText = 'FREE';
             deliveryElement.style.color = '#1b8f50';
         } else {
-            deliveryElement.innerText = '₱ 0.00';
+            deliveryElement.innerText = '\u20B1 0.00';
             deliveryElement.style.color = 'var(--darkgray-text)';
         }
     }
@@ -271,7 +271,7 @@ function renderWishlistPage() {
                 </div>
                 <div class="product-price">
                     <p><i>${p.type}</i></p>
-                    <p>₱ ${p.price}</p>
+                    <p>\u20B1 ${p.price}</p>
                 </div>
                 <div class="product-btn">
                     <div class="wishlist"><button onclick="addToWishlist('${p.id}')"><i class="fi fi-ss-heart"></i></button></div>

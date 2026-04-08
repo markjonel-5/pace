@@ -32,7 +32,7 @@ function loadProductDetails(p) {
 
     document.getElementById('pd-name').innerText = p.name;
     document.getElementById('desc-name').innerText = p.name;
-    document.getElementById('pd-price').innerText = '₱ ' + p.price;
+    document.getElementById('pd-price').innerText = '\u20B1 ' + p.price;
 
     const breadCat = document.getElementById('bread-cat');
     breadCat.innerText = p.type.charAt(0).toUpperCase() + p.type.slice(1).toLowerCase();

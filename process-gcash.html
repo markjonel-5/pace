@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Processing Payment...</title>
+    <link rel="stylesheet" href="global.css">
+    <script src="global.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .processing-card {
+            background: #ffffff;
+            padding: 40px 50px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--brand-color, #e05e00);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .processing-card h2 {
+            color: var(--darkgray-text, #333);
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+
+        .processing-card p {
+            color: var(--gray-text, #666);
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="processing-card">
+        <div class="spinner"></div>
+        <h2>Payment Successful!</h2>
+        <p>Please wait while we process your order.<br>Do not close or refresh this window.</p>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const pendingOrder = JSON.parse(localStorage.getItem('pace_pending_gcash_order'));
+
+            if (!pendingOrder) {
+                window.location.href = 'homepage.html';
+                return;
+            }
+
+            // CRITICAL FIX 1: Wait 1 full second for global.js to safely load currentUser
+            setTimeout(() => {
+                fetch('Database/place-order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(pendingOrder)
+                })
+                .then(res => res.json())
+                .then(async data => { // We use 'async' here to chain database updates
+                    if (data.success) {
+                        let currentUser = window.currentUser;
+
+                        const subtotal = pendingOrder.items.reduce((total, item) => total + (parseFloat(item.price.replace(/,/g, '')) * (item.quantity || 1)), 0);
+                        const deliveryFee = pendingOrder.totalAmount - subtotal;
+
+                        const newOrderHistoryData = {
+                            id: pendingOrder.id,
+                            date: pendingOrder.date,
+                            items: pendingOrder.items,
+                            subtotal: subtotal,
+                            deliveryFee: deliveryFee,
+                            total: pendingOrder.totalAmount,
+                            status: 'To Ship',
+                            deliveryType: pendingOrder.deliveryType,
+                            addressId: pendingOrder.shippingAddress ? pendingOrder.shippingAddress.id : null,
+                            payment: pendingOrder.paymentMethod
+                        };
+
+                        if (currentUser) {
+                            if (!currentUser.orderHistory) currentUser.orderHistory = [];
+                            if (!currentUser.notifications) currentUser.notifications = [];
+
+                            currentUser.orderHistory.push(newOrderHistoryData);
+                            currentUser.notifications.unshift({
+                                id: 'NOTIF-' + Date.now(),
+                                title: 'Order Confirmed!',
+                                message: `Your order ${pendingOrder.id} has been successfully placed via GCash.`,
+                                date: pendingOrder.date,
+                                read: false
+                            });
+
+                            const buyNowItem = JSON.parse(sessionStorage.getItem('pace_buy_now_item'));
+                            if (!buyNowItem) {
+                                currentUser.cart = currentUser.cart.filter(item => item.selected === false);
+                            }
+
+                            // CRITICAL FIX 2: Await each database sync to prevent PHP overwriting memory
+                            try {
+                                if (window.syncCartToDatabase) await window.syncCartToDatabase(currentUser.email, currentUser.cart);
+                                if (window.syncNotificationsToDatabase) await window.syncNotificationsToDatabase(currentUser.email, currentUser.notifications);
+                                await fetch('Database/update-account.php', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ action: 'update_order_history', email: currentUser.email, orderHistory: currentUser.orderHistory })
+                                });
+                            } catch (e) {
+                                console.error("Sync error:", e);
+                            }
+
+                        } else {
+                            const buyNowItem = JSON.parse(sessionStorage.getItem('pace_buy_now_item'));
+                            if (!buyNowItem) {
+                                window.guestCart = (window.guestCart || []).filter(item => item.selected === false);
+                                fetch('Database/update-guest-session.php', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ action: 'update_cart', cart: window.guestCart })
+                                });
+                            }
+                        }
+
+                        localStorage.removeItem('pace_pending_gcash_order');
+                        if (sessionStorage.getItem('pace_buy_now_item')) sessionStorage.removeItem('pace_buy_now_item');
+
+                        const isGuestStr = currentUser ? 'false' : 'true';
+                        window.location.href = `success-order.html?orderId=${pendingOrder.id}&guest=${isGuestStr}`;
+                    } else {
+                        alert("Database Error saving your order!");
+                        window.location.href = 'checkout.html';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Server error while saving order.");
+                    window.location.href = 'checkout.html';
+                });
+            }, 1000); // 1000ms delay gives global.js enough time
+        });
+    </script>
+</body>
+
+</html>

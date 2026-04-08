@@ -112,7 +112,7 @@ function renderProductStats(products) {
     document.getElementById('stat-total-products').innerText = total;
     document.getElementById('stat-low-stock').innerText = lowStock;
     document.getElementById('stat-out-of-stock').innerText = outOfStock;
-    document.getElementById('stat-inventory-value').innerText = '₱ ' + totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 });
+    document.getElementById('stat-inventory-value').innerText = '\u20B1 ' + totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 });
 }
 
 // ===============================================
@@ -206,7 +206,7 @@ function renderProductsTable() {
             </td>
             <td style="font-weight: 600; color: var(--gray-text);">${p.id}</td>
             <td style="color: var(--darkgray-text);">${p.type}</td>
-            <td style="font-weight: 600;">₱ ${p.price}</td>
+            <td style="font-weight: 600;">\u20B1 ${p.price}</td>
             <td style="font-weight: 700; color: ${stock <= 10 ? 'var(--brand-color)' : 'var(--darkgray-text)'};">${stock}</td>
             <td><span class="status-badge ${statusClass}">${statusText}</span></td>
             <td style="text-align: right; padding-right: 30px;">

@@ -205,7 +205,7 @@ window.viewUserDetails = function (email) {
                 return `
                 <div class="up-history-card">
                     <div><strong style="color: var(--brand-color); font-size: 13px;">${o.id}</strong><div style="font-size: 11px; color: var(--gray-text);">${o.date}</div></div>
-                    <div style="text-align: right;"><strong style="font-size: 14px;">₱ ${cleanAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong><div style="font-size: 10px; font-weight: 700; color: ${statusColor};">${o.status.toUpperCase()}</div></div>
+                    <div style="text-align: right;"><strong style="font-size: 14px;">\u20B1 ${cleanAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong><div style="font-size: 10px; font-weight: 700; color: ${statusColor};">${o.status.toUpperCase()}</div></div>
                 </div>`;
             }).join('');
         }

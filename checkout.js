@@ -32,7 +32,6 @@ window.addEventListener('DOMContentLoaded', () => {
         
         // Setup Forms & Modals
         setupModalCleanup();
-        setupPaymentForm();
         setupAddressForm();
     }, 100);
 });
@@ -118,7 +117,7 @@ function loadCheckoutData(user) {
                         <p>${item.color} / ${item.size}</p>
                     </div>
                 </div>
-                <div class="summary-mini-price">₱ ${formattedUnitPrice}</div>
+                <div class="summary-mini-price">\u20B1 ${formattedUnitPrice}</div>
             </div>
         `;
     });
@@ -196,40 +195,52 @@ function loadCheckoutData(user) {
 
     // Render Payment Area
     const paymentContainer = document.getElementById('checkout-payment-content');
+    
+    // Find if user has saved GCash numbers
     let validPayments = [];
     if (user && user.payments) {
-        validPayments = user.payments.filter(p => p && p.type && p.type !== 'undefined');
-    } else if (!user) {
-        validPayments = temporaryGuestPayments;
+        validPayments = user.payments.filter(p => p && p.type === 'GCash');
     }
 
-    const paymentHeaderBtn = paymentContainer.parentElement.querySelector('.add-address-btn');
-    if (paymentHeaderBtn) paymentHeaderBtn.style.display = 'inline-flex';
-
     let paymentHTML = '<div class="checkout-selection-list">';
-    validPayments.forEach((pm, index) => {
-        const isChecked = index === validPayments.length - 1 ? 'checked' : '';
-        let displayDetails = pm.type === 'Card' ? `•••• •••• •••• ${pm.data.number.slice(-4)}` : (pm.type === 'GCash' ? pm.data.phone : pm.data.email);
-        let iconCode = pm.type === 'Card' ? 'fi-rr-credit-card' : (pm.type === 'GCash' ? 'fi-rr-smartphone' : 'fi-brands-paypal');
-
+    
+    if (validPayments.length > 0) {
+        // Render their saved GCash numbers
+        validPayments.forEach((pm, index) => {
+            const isChecked = index === 0 ? 'checked' : '';
+            paymentHTML += `
+                <label class="checkout-option-label">
+                    <input type="radio" name="checkout-payment" value="${pm.id}" ${isChecked}>
+                    <div class="pm-icon-box" style="background: #fff; width:40px; height:40px; display:flex; justify-content:center; align-items:center; border-radius:6px; font-size:18px; color:var(--darkgray-text); border: 1px solid #eaeaea;">
+                       <i class="fi fi-rr-smartphone"></i>
+                    </div>
+                    <div class="checkout-option-info">
+                        <p style="font-size:13px; color:var(--gray-text); margin-bottom:2px; font-weight:600;">Saved GCash</p>
+                        <h4 style="font-size:15px; color:var(--darkgray-text);">${pm.data.phone}</h4>
+                    </div>
+                </label>
+            `;
+        });
+    } else {
+        // Render a generic GCash option if they haven't saved one
         paymentHTML += `
             <label class="checkout-option-label">
-                <input type="radio" name="checkout-payment" value="${pm.id}" ${isChecked}>
+                <input type="radio" name="checkout-payment" value="GCash">
                 <div class="pm-icon-box" style="background: #fff; width:40px; height:40px; display:flex; justify-content:center; align-items:center; border-radius:6px; font-size:18px; color:var(--darkgray-text); border: 1px solid #eaeaea;">
-                   <i class="fi ${iconCode}"></i>
+                   <i class="fi fi-rr-smartphone"></i>
                 </div>
                 <div class="checkout-option-info">
-                    <p style="font-size:13px; color:var(--gray-text); margin-bottom:2px; font-weight:600;">${pm.type}</p>
-                    <h4 style="font-size:15px; color:var(--darkgray-text);">${displayDetails}</h4>
+                    <p style="font-size:13px; color:var(--gray-text); margin-bottom:2px; font-weight:600;">E-Wallet</p>
+                    <h4 style="font-size:15px; color:var(--darkgray-text);">GCash</h4>
                 </div>
             </label>
         `;
-    });
+    }
 
-    const isCODChecked = validPayments.length === 0 ? 'checked' : '';
+    // Add COD to the bottom
     paymentHTML += `
         <label class="checkout-option-label">
-            <input type="radio" name="checkout-payment" value="COD" ${isCODChecked}>
+            <input type="radio" name="checkout-payment" value="COD" ${validPayments.length === 0 ? 'checked' : ''}>
             <div class="pm-icon-box" style="background: #fff; width:40px; height:40px; display:flex; justify-content:center; align-items:center; border-radius:6px; font-size:18px; color:var(--darkgray-text); border: 1px solid #eaeaea;">
                <i class="fi fi-rr-money-bill-wave"></i>
             </div>
@@ -268,12 +279,12 @@ function updateOrderSummary() {
         deliveryText.innerText = 'FREE';
         deliveryText.style.color = '#1b8f50';
     } else {
-        deliveryText.innerText = '₱ ' + deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        deliveryText.innerText = '\u20B1 ' + deliveryFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         deliveryText.style.color = 'var(--darkgray-text)';
     }
 
-    document.getElementById('checkout-subtotal').innerText = '₱ ' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('checkout-total').innerText = '₱ ' + finalTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('checkout-subtotal').innerText = '\u20B1 ' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('checkout-total').innerText = '\u20B1 ' + finalTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function setupDeliveryToggle() {
@@ -431,200 +442,11 @@ function setupModalCleanup() {
             if (defaultDelivery) defaultDelivery.dispatchEvent(new Event('change'));
         });
     }
-
-    const pmModal = document.getElementById('payment-modal');
-    if (pmModal) {
-        pmModal.addEventListener('close', () => {
-            const pmForm = document.getElementById('form-new-payment');
-            if (pmForm) pmForm.reset();
-            
-            const cardRadio = document.querySelector('input[name="pm-type"][value="Card"]');
-            if (cardRadio) {
-                cardRadio.checked = true;
-                cardRadio.dispatchEvent(new Event('change')); 
-            }
-
-            const gcashWrapper = document.querySelector('.phone-input-wrapper');
-            const gcashError = document.getElementById('pm-gcash-error');
-            if (gcashWrapper) gcashWrapper.classList.remove('input-error');
-            if (gcashError) gcashError.classList.add('error-hidden');
-
-            ['pm-card-number', 'pm-card-exp', 'pm-card-cvv'].forEach(id => {
-                const input = document.getElementById(id);
-                const error = document.getElementById(id + '-error');
-                if (input) input.classList.remove('input-error');
-                if (error) error.classList.add('error-hidden');
-            });
-        });
-    }
 }
 
 // ==========================================
-// 6. FORM HANDLERS (PAYMENT & ADDRESS)
+// 6. FORM HANDLERS (ADDRESS)
 // ==========================================
-function setupPaymentForm() {
-    const pmRadios = document.querySelectorAll('input[name="pm-type"]');
-    pmRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            const selectedType = e.target.value;
-
-            document.querySelectorAll('.pm-dynamic-fields').forEach(f => {
-                f.classList.remove('active-fields');
-                f.classList.add('hidden-fields');
-            });
-
-            const target = document.getElementById('fields-' + selectedType.toLowerCase());
-            if (target) {
-                target.classList.remove('hidden-fields');
-                target.classList.add('active-fields');
-            }
-
-            document.querySelectorAll('.pm-dynamic-fields .account-input-field').forEach(input => input.required = false);
-
-            if (selectedType === 'Card') {
-                const cardName = document.getElementById('pm-card-name');
-                const cardNum = document.getElementById('pm-card-number');
-                const cardExp = document.getElementById('pm-card-exp');
-                const cardCvv = document.getElementById('pm-card-cvv');
-                if(cardName) cardName.required = true;
-                if(cardNum) cardNum.required = true;
-                if(cardExp) cardExp.required = true;
-                if(cardCvv) cardCvv.required = true;
-            } else if (selectedType === 'GCash') {
-                const gcashName = document.getElementById('pm-gcash-name');
-                const gcashPhone = document.getElementById('pm-gcash-phone');
-                if(gcashName) gcashName.required = true;
-                if(gcashPhone) gcashPhone.required = true;
-            } else if (selectedType === 'PayPal') {
-                const paypalEmail = document.getElementById('pm-paypal-email');
-                if(paypalEmail) paypalEmail.required = true;
-            }
-        });
-    });
-
-    const defaultPmRadio = document.querySelector('input[name="pm-type"]:checked');
-    if (defaultPmRadio) defaultPmRadio.dispatchEvent(new Event('change'));
-
-    const pmForm = document.getElementById('form-new-payment');
-    if (pmForm) {
-        const submitBtn = pmForm.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            const newBtn = submitBtn.cloneNode(true);
-            newBtn.type = 'button'; 
-            submitBtn.parentNode.replaceChild(newBtn, submitBtn);
-
-            newBtn.addEventListener('click', () => {
-                if (!pmForm.checkValidity()) {
-                    pmForm.reportValidity();
-                    return;
-                }
-
-                const pmTypeObj = document.querySelector('input[name="pm-type"]:checked');
-                const selectedType = pmTypeObj ? pmTypeObj.value : 'Card';
-                let paymentData = {};
-                let hasError = false;
-
-                if (selectedType === 'Card') {
-                    const cardNumInput = document.getElementById('pm-card-number');
-                    const cardExpInput = document.getElementById('pm-card-exp');
-                    const cardCvvInput = document.getElementById('pm-card-cvv');
-                    const cardNumError = document.getElementById('pm-card-number-error');
-                    const cardExpError = document.getElementById('pm-card-exp-error');
-                    const cardCvvError = document.getElementById('pm-card-cvv-error');
-
-                    if(cardNumInput) cardNumInput.classList.remove('input-error');
-                    if(cardExpInput) cardExpInput.classList.remove('input-error');
-                    if(cardCvvInput) cardCvvInput.classList.remove('input-error');
-                    if(cardNumError) cardNumError.classList.add('error-hidden');
-                    if(cardExpError) cardExpError.classList.add('error-hidden');
-                    if(cardCvvError) cardCvvError.classList.add('error-hidden');
-
-                    const cardNumber = cardNumInput ? cardNumInput.value.replace(/\s/g, '') : '';
-                    if (cardNumber.length !== 16) {
-                        if(cardNumError) { cardNumError.innerText = "Please enter a valid 16-digit card number."; cardNumError.classList.remove('error-hidden'); }
-                        if(cardNumInput) cardNumInput.classList.add('input-error');
-                        hasError = true;
-                    }
-
-                    const cardExp = cardExpInput ? cardExpInput.value.trim() : '';
-                    if (cardExp.length !== 5) {
-                        if(cardExpError) { cardExpError.innerText = "Enter valid date (MM/YY)."; cardExpError.classList.remove('error-hidden'); }
-                        if(cardExpInput) cardExpInput.classList.add('input-error');
-                        hasError = true;
-                    } else {
-                        const parts = cardExp.split('/');
-                        const expMonth = parseInt(parts[0], 10);
-                        const expYear = parseInt(parts[1], 10);
-                        const today = new Date();
-                        const currentMonth = today.getMonth() + 1;
-                        const currentYear = parseInt(today.getFullYear().toString().slice(-2), 10);
-
-                        if (expMonth < 1 || expMonth > 12) {
-                            if(cardExpError) { cardExpError.innerText = "Invalid month (01-12)."; cardExpError.classList.remove('error-hidden'); }
-                            if(cardExpInput) cardExpInput.classList.add('input-error');
-                            hasError = true;
-                        } else if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
-                            if(cardExpError) { cardExpError.innerText = "This card has expired."; cardExpError.classList.remove('error-hidden'); }
-                            if(cardExpInput) cardExpInput.classList.add('input-error');
-                            hasError = true;
-                        }
-                    }
-
-                    const cardCvv = cardCvvInput ? cardCvvInput.value.trim() : '';
-                    if (cardCvv.length < 3) {
-                        if(cardCvvError) { cardCvvError.innerText = "CVV must be 3 or 4 digits."; cardCvvError.classList.remove('error-hidden'); }
-                        if(cardCvvInput) cardCvvInput.classList.add('input-error');
-                        hasError = true;
-                    }
-
-                    if (hasError) return;
-                    paymentData = { name: document.getElementById('pm-card-name').value.trim(), number: cardNumber, exp: cardExp, cvv: cardCvv };
-
-                } else if (selectedType === 'GCash') {
-                    const gcashInput = document.getElementById('pm-gcash-phone');
-                    const rawPhone = gcashInput ? gcashInput.value.replace(/\D/g, '') : '';
-                    const gcashError = document.getElementById('pm-gcash-error');
-                    const gcashWrapper = gcashInput ? gcashInput.closest('.phone-input-wrapper') : null;
-
-                    if(gcashError) gcashError.classList.add('error-hidden');
-                    if(gcashWrapper) gcashWrapper.classList.remove('input-error');
-
-                    if (rawPhone.length !== 9) {
-                        if(gcashError) { gcashError.innerText = "Please enter a complete 10-digit GCash number."; gcashError.classList.remove('error-hidden'); }
-                        if(gcashWrapper) gcashWrapper.classList.add('input-error');
-                        return; 
-                    }
-                    paymentData = { name: document.getElementById('pm-gcash-name').value.trim(), phone: '+63 9' + gcashInput.value.trim() };
-
-                } else if (selectedType === 'PayPal') {
-                    paymentData = { name: 'PayPal Account', email: document.getElementById('pm-paypal-email').value.trim() };
-                }
-
-                let newPm = { id: 'PM-' + Date.now(), type: selectedType, data: paymentData };
-                
-                if (window.currentUser) {
-                    if (!window.currentUser.payments) window.currentUser.payments = [];
-                    window.currentUser.payments.push(newPm);
-                    if (window.syncPaymentsToDatabase) window.syncPaymentsToDatabase(window.currentUser.email, window.currentUser.payments);
-                } else {
-                    temporaryGuestPayments.push(newPm);
-                }
-
-                pmForm.reset();
-                const cardRadio = document.querySelector('input[name="pm-type"][value="Card"]');
-                if (cardRadio) {
-                    cardRadio.checked = true;
-                    cardRadio.dispatchEvent(new Event('change'));
-                }
-
-                window.closeAccountModal('payment-modal');
-                loadCheckoutData(window.currentUser);
-                const defaultDelivery = document.querySelector('input[name="checkout-delivery-speed"]:checked');
-                if (defaultDelivery) defaultDelivery.dispatchEvent(new Event('change'));
-            });
-        }
-    }
-}
 
 function setupAddressForm() {
     const addressForm = document.getElementById('form-new-address');
@@ -819,16 +641,10 @@ function placeOrder() {
         if (paymentRadio.value === 'COD') {
             paymentMethod = 'COD';
         } else {
-            let combinedPayments = currentUser ? (currentUser.payments || []) : temporaryGuestPayments;
-            const selectedPm = combinedPayments.find(p => p.id.toString() === paymentRadio.value);
-            if (selectedPm) {
-                paymentMethod = selectedPm.type;
-            }
+            // If it is NOT COD, it is either the generic "GCash" string, 
+            // or it is the ID of a saved GCash number. Either way, the payment type is GCash!
+            paymentMethod = 'GCash'; 
         }
-    }
-
-    if (isPickUp && paymentMethod === 'COD') {
-        paymentMethod = 'Over-the-counter';
     }
 
     let deliveryTypeName = 'Standard Delivery';
@@ -858,6 +674,82 @@ function placeOrder() {
         deliveryType: deliveryTypeName,
         shippingAddress: fullShippingAddress || {}
     };
+
+    // ==========================================
+    // PAYMONGO API INTEGRATION (GCASH)
+    // ==========================================
+    if (paymentMethod === 'GCash') {
+        
+        // Safety Check: PayMongo requires transactions to be at least 20 PHP
+        if (finalTotal < 20) {
+            alert("PayMongo requires a minimum amount of ₱20.00 for GCash transactions.");
+            checkoutBtn.innerText = "PLACE ORDER";
+            checkoutBtn.style.pointerEvents = "auto";
+            return;
+        }
+
+        // 1. Save order to memory for after the redirect
+        localStorage.setItem('pace_pending_gcash_order', JSON.stringify(adminOrderInfo));
+
+        // 2. Change UI to loading state
+        checkoutBtn.innerText = "REDIRECTING TO GCASH...";
+
+        // 3. Get the correct GCash phone number (Saved GCash OR Shipping Phone)
+        let gcashPhone = adminOrderInfo.shippingAddress ? adminOrderInfo.shippingAddress.phone : '';
+        const paymentRadioObj = document.querySelector('input[name="checkout-payment"]:checked');
+        if (paymentRadioObj && paymentRadioObj.value !== 'COD' && paymentRadioObj.value !== 'GCash') {
+            let combinedPayments = currentUser ? (currentUser.payments || []) : temporaryGuestPayments;
+            const selectedPm = combinedPayments.find(p => p.id.toString() === paymentRadioObj.value);
+            if (selectedPm && selectedPm.type === 'GCash') {
+                gcashPhone = selectedPm.data.phone; 
+            }
+        }
+
+        // 4. Call PayMongo API
+        fetch('Database/paymongo.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: finalTotal,
+                name: adminOrderInfo.customerName,
+                email: adminOrderInfo.customerEmail,
+                phone: gcashPhone, 
+                description: orderId,
+                items: adminOrderInfo.items,
+                deliveryFee: deliveryFee,       
+                deliveryType: deliveryTypeName, 
+                origin: window.location.origin + '/pace', 
+                successUrl: window.location.origin + '/pace/process-gcash.html',
+                failedUrl: window.location.origin + '/pace/checkout.html'
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.checkout_url) {
+                window.location.href = data.checkout_url; // Go to PayMongo
+            } else {
+                // EXPLICIT ERROR REPORTING: Show exact PayMongo error if it fails
+                console.error("PayMongo Error Data:", data);
+                let errorMsg = "Payment Gateway Error. Please try again.";
+                if (data.details && data.details.errors && data.details.errors.length > 0) {
+                    errorMsg = "PayMongo Error: " + data.details.errors[0].detail;
+                }
+                alert(errorMsg);
+                
+                checkoutBtn.innerText = "PLACE ORDER";
+                checkoutBtn.style.pointerEvents = "auto";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Could not connect to payment gateway.");
+            checkoutBtn.innerText = "PLACE ORDER";
+            checkoutBtn.style.pointerEvents = "auto";
+        });
+
+        return; // STOP execution here! Do not save to DB yet.
+    }
+    // ==========================================
 
     // SEND TO LIVE DATABASE!
     fetch('Database/place-order.php', {

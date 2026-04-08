@@ -120,7 +120,7 @@ function fetchDashboardData() {
         // Populate Main Numbers
         if (document.getElementById('stat-users')) document.getElementById('stat-users').innerText = totalUsers;
         if (document.getElementById('stat-products')) document.getElementById('stat-products').innerText = products.length;
-        if (document.getElementById('stat-sales')) document.getElementById('stat-sales').innerText = '₱ ' + totalSales.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        if (document.getElementById('stat-sales')) document.getElementById('stat-sales').innerText = '\u20B1 ' + totalSales.toLocaleString('en-US', { minimumFractionDigits: 2 });
 
         function getTrendHTML(current, previous) {
             if (previous === 0 && current === 0) return `<span class="trend-badge trend-neutral"><i class="fi fi-rr-minus-small"></i> 0%</span>`;
@@ -139,7 +139,7 @@ function fetchDashboardData() {
         // 4. GENERATE MONTHLY BREAKDOWN
         if (document.getElementById('mb-list')) {
             document.getElementById('mb-list').innerHTML = monthlySales.map((total, index) => `
-                <li><span>${fullMonthNames[index]}</span> <strong>₱ ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></li>
+                <li><span>${fullMonthNames[index]}</span> <strong>\u20B1 ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></li>
             `).join('');
         }
 
@@ -149,7 +149,7 @@ function fetchDashboardData() {
             const maxSales = Math.max(...monthlySales, 100);
             msrChart.innerHTML = monthlySales.map((total, index) => {
                 const heightPct = (total / maxSales) * 100;
-                const formattedTotal = '₱ ' + total.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                const formattedTotal = '\u20B1 ' + total.toLocaleString('en-US', { minimumFractionDigits: 2 });
                 return `
                     <div class="bar-col">
                         <div class="bar" style="height: ${heightPct}%" onmousemove="showTooltip(event, '${formattedTotal}')" onmouseout="hideTooltip()"></div>
@@ -236,7 +236,7 @@ function fetchDashboardData() {
                     </td>
                     <td style="color: var(--gray-text);">${order.date}</td>
                     <td><span style="${badgeStyle}">${order.status}</span></td>
-                    <td style="font-weight: 700; color: var(--darkgray-text);">₱ ${parseFloat(order.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                    <td style="font-weight: 700; color: var(--darkgray-text);">\u20B1 ${parseFloat(order.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                 </tr>
                 `;
             }).join('');

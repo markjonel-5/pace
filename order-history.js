@@ -170,7 +170,7 @@ window.openOrderDetails = function (orderId) {
                     <p>Color: ${item.color} | Size: ${item.size} | Qty: ${item.quantity || 1}</p>
                     ${reviewActionHTML}
                 </div>
-                <div class="drop-item-price">₱ ${formatCurrency(item.price.replace(/,/g, '') * (item.quantity || 1))}</div>
+                <div class="drop-item-price">\u20B1 ${formatCurrency(item.price.replace(/,/g, '') * (item.quantity || 1))}</div>
             </div>
         `;
     }).join('');
@@ -180,10 +180,10 @@ window.openOrderDetails = function (orderId) {
         <div class="drop-meta-row"><div class="drop-meta-chunk"><p>Order ID</p><h4>${order.id}</h4></div><div class="drop-meta-chunk" style="text-align: right"><p>Date Placed</p><h4>${order.date}</h4></div></div>
         <div class="drop-items-container">${itemsHTML}</div>
         <div class="drop-dark-receipt">
-            <div class="drop-dark-row"><span>Subtotal</span><span>₱ ${formatCurrency(order.subtotal)}</span></div>
-            <div class="drop-dark-row"><span>Delivery (${order.deliveryType})</span><span>${order.deliveryFee === 0 ? 'FREE' : '₱ ' + formatCurrency(order.deliveryFee)}</span></div>
+            <div class="drop-dark-row"><span>Subtotal</span><span>\u20B1 ${formatCurrency(order.subtotal)}</span></div>
+            <div class="drop-dark-row"><span>Delivery (${order.deliveryType})</span><span>${order.deliveryFee === 0 ? 'FREE' : '\u20B1 ' + formatCurrency(order.deliveryFee)}</span></div>
             <div class="drop-dark-row"><span>Payment</span><span>${order.payment}</span></div>
-            <div class="drop-dark-total"><span>TOTAL</span><span style="color: var(--brand-color);">₱ ${formatCurrency(order.total)}</span></div>
+            <div class="drop-dark-total"><span>TOTAL</span><span style="color: var(--brand-color);">\u20B1 ${formatCurrency(order.total)}</span></div>
         </div>
     `;
 
@@ -312,7 +312,7 @@ function renderOrderHistory(filterStatus) {
                         <div style="flex: 1;"><h4 class="ticket-item-title">${firstItem.name}</h4><p class="ticket-item-meta">Color: ${firstItem.color} | Size: ${firstItem.size}</p><p class="ticket-qty-meta">Qty: ${firstItem.quantity || 1}</p></div>
                     </div>
                     <div class="ticket-footer">
-                        <div class="ticket-footer-total">Order Total: <strong>₱ ${parseFloat(order.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></div>
+                        <div class="ticket-footer-total">Order Total: <strong>\u20B1 ${parseFloat(order.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></div>
                         <div class="ticket-footer-action">View Details <i class="fi fi-rr-angle-small-right"></i></div>
                     </div>
                 </div>`;

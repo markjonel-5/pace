@@ -149,7 +149,7 @@ function renderTable(orders, filterStatus, searchQuery = '') {
                 </td>
                 <td style="color: var(--gray-text);">${order.date}</td>
                 <td><span style="${badgeStyle}">${order.status}</span></td>
-                <td style="font-weight: 700; color: var(--darkgray-text);">₱ ${parseFloat(order.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                <td style="font-weight: 700; color: var(--darkgray-text);">\u20B1 ${parseFloat(order.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                 <td class="actions-cell">
                     <div class="action-btns">
                         ${actionButtonHTML}
@@ -300,7 +300,7 @@ window.viewOrderDetails = function (orderId) {
                 <p>${item.type} | Color: ${item.color} | Size: ${item.size}</p>
                 <div style="display:flex; justify-content:space-between; margin-top:5px;">
                     <span style="font-weight:600; font-size: 12px; color:var(--gray-text);">Qty: ${item.quantity || 1}</span>
-                    <span style="font-weight:600; font-size: 14px; color:var(--brand-color);">₱ ${item.price}</span>
+                    <span style="font-weight:600; font-size: 14px; color:var(--brand-color);">\u20B1 ${item.price}</span>
                 </div>
             </div>
         </div>
@@ -328,7 +328,7 @@ window.viewOrderDetails = function (orderId) {
             </div>
             <div class="od-summary-row total">
                 <span>Total Amount:</span>
-                <span>₱ ${parseFloat(order.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                <span>\u20B1 ${parseFloat(order.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
             </div>
         </div>
     `;

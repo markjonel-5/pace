@@ -159,10 +159,9 @@ function renderFooter() {
                 <div class="footer-column">
                     <h4>CONNECT WITH US</h4>
                     <div class="social">
-                        <a href="#"><i class="fi fi-brands-facebook"></i></a>
-                        <a href="#"><i class="fi fi-brands-instagram"></i></a>
-                        <a href="#"><i class="fi fi-brands-twitter-alt"></i></a>
-                        <a href="#"><i class="fi fi-brands-youtube"></i></a>
+                        <a href="https://www.facebook.com/profile.php?id=61572149755730"><i class="fi fi-brands-facebook"></i></a>
+                        <a href="https://www.instagram.com/pace_philippines/"><i class="fi fi-brands-instagram"></i></a>
+                        <a href="https://www.youtube.com/channel/UCLiThmvB-qilFjVNqigzUzQ"><i class="fi fi-brands-youtube"></i></a>
                     </div>
                 </div>
             </div>
@@ -434,7 +433,7 @@ function renderCartPreview() {
                 <i class="fi fi-rr-shopping-cart" style="font-size: 50px; color: #ddd; margin-bottom: 10px; display: block;"></i>
                 <p>Your cart is currently empty.</p>
             </div>`;
-        if (totalEl) totalEl.innerText = '₱ 0.00';
+        if (totalEl) totalEl.innerText = '\u20B1 0.00';
         return;
     }
 
@@ -459,7 +458,7 @@ function renderCartPreview() {
                     <p>Size: ${item.size}</p>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
                         <span style="font-size: 13px; color: var(--gray-text);">Qty: ${qty}</span>
-                        <span class="mini-cart-price">₱ ${item.price}</span>
+                        <span class="mini-cart-price">\u20B1 ${item.price}</span>
                     </div>
                 </div>
             </div>
@@ -468,7 +467,7 @@ function renderCartPreview() {
 
     if (totalEl) {
         const formattedTotal = subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        totalEl.innerText = '₱ ' + formattedTotal;
+        totalEl.innerText = '\u20B1 ' + formattedTotal;
     }
 }
 
@@ -520,7 +519,7 @@ function addToCart(product) {
         const nav = document.querySelector('.navbar-section');
         if (document.getElementById('modal-img')) document.getElementById('modal-img').src = product.img;
         if (document.getElementById('modal-name')) document.getElementById('modal-name').innerText = product.name;
-        if (document.getElementById('modal-price')) document.getElementById('modal-price').innerText = '₱ ' + product.price;
+        if (document.getElementById('modal-price')) document.getElementById('modal-price').innerText = '\u20B1 ' + product.price;
         if (document.getElementById('modal-color')) document.getElementById('modal-color').innerText = product.color;
         if (document.getElementById('modal-size')) document.getElementById('modal-size').innerText = selectedSize;
 
@@ -636,7 +635,7 @@ function renderWishlistPreview() {
                     <p style="margin-bottom: 2px;">${item.type}</p>
                     <p>Color: ${item.color}</p>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span class="mini-cart-price" style="margin-top: 10px;">₱ ${item.price}</span>
+                        <span class="mini-cart-price" style="margin-top: 10px;">\u20B1 ${item.price}</span>
                     </div>
                 </div>
             </div>
@@ -1071,7 +1070,7 @@ function renderSearchPanelProducts(query) {
                 </div>
                 <div class="product-price">
                     <p><i>${p.type}</i></p>
-                    <p>₱ ${p.price}</p>
+                    <p>\u20B1 ${p.price}</p>
                 </div>
                 <div class="product-btn">
                     <div class="wishlist"><button onclick="event.stopPropagation(); addToWishlist('${p.id}')"><i class="fi ${heartClass}"></i></button></div>
