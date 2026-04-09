@@ -10,7 +10,7 @@ if (!favicon) {
 }
 favicon.href = "Brand Image/pace favicon.png";
 
-// --- NEW GLOBAL STOCK HELPER ---
+// STOCK HELPER
 window.getTotalStock = function (stockVal) {
     if (typeof stockVal === 'number' || typeof stockVal === 'string') return parseInt(stockVal) || 0;
     if (typeof stockVal === 'object' && stockVal !== null) {
@@ -19,7 +19,7 @@ window.getTotalStock = function (stockVal) {
     return 0;
 };
 
-// --- NEW: SYNC CART & WISHLIST TO MYSQL ---
+// CART
 window.syncCartToDatabase = function (email, cartArray) {
     fetch('Database/update-account.php', {
         method: 'POST',
@@ -28,6 +28,7 @@ window.syncCartToDatabase = function (email, cartArray) {
     }).catch(err => console.error("Error syncing cart:", err));
 };
 
+// WISHLIST
 window.syncWishlistToDatabase = function (email, wishlistArray) {
     fetch('Database/update-account.php', {
         method: 'POST',
@@ -183,10 +184,9 @@ function renderUserMenu() {
 
     try {
         if (window.currentUser) {
-            // Safely grab the names using both MySQL and local spellings!
             let rawFName = window.currentUser.first_name || window.currentUser.firstName || window.currentUser.name || 'User';
             let rawLName = window.currentUser.last_name || window.currentUser.lastName || '';
-            
+
             let fName = String(rawFName).trim();
             let lName = String(rawLName).trim();
 
@@ -194,7 +194,6 @@ function renderUserMenu() {
             const lastInitial = lName.length > 0 ? lName.charAt(0) : '';
             const initials = (firstInitial + lastInitial).toUpperCase();
 
-            // --- FIX: Check for both spellings of the profile picture! ---
             let savedPhoto = window.currentUser.profilePic || window.currentUser.profile_pic;
 
             let profileImageHTML = savedPhoto
@@ -225,7 +224,6 @@ function renderUserMenu() {
                 </div>
             `;
         } else {
-            // Guest UI stays exactly the same
             container.innerHTML = `
                 <button class="user-popup-btn" onclick="toggleUserPopup()"><i class="fi fi-rs-user"></i></button>
                 <div class="user-action-card" id="user-popup-menu">
@@ -246,7 +244,7 @@ function logoutUser() {
     fetch('Database/logout.php')
         .then(response => response.json())
         .then(data => {
-            window.currentUser = null; // Clear live memory
+            window.currentUser = null;
             window.scrollTo(0, 0);
             window.location.href = 'homepage.html';
         })
@@ -272,12 +270,10 @@ window.addEventListener('click', function (event) {
 });
 // USER POPUP MENU END
 
-/* FETCH AND SAVE CART DATA (USER VS GUEST) FUNCTION START */
 function getCartData() {
     if (window.currentUser) {
         return window.currentUser.cart || [];
     } else {
-        // Return from Live Memory instead of localStorage
         return window.guestCart || [];
     }
 }
@@ -288,7 +284,6 @@ function saveCartData(cart) {
         if (window.syncCartToDatabase) window.syncCartToDatabase(window.currentUser.email, cart);
     } else {
         window.guestCart = cart;
-        // SYNC DIRECTLY TO SECURE PHP GUEST SESSION!
         fetch('Database/update-guest-session.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -303,7 +298,6 @@ function getWishlistData() {
     if (window.currentUser) {
         return window.currentUser.wishlist || [];
     } else {
-        // Return from Live Memory instead of localStorage
         return window.guestWishlist || [];
     }
 }
@@ -314,7 +308,6 @@ function saveWishlistData(wishlist) {
         if (window.syncWishlistToDatabase) window.syncWishlistToDatabase(window.currentUser.email, wishlist);
     } else {
         window.guestWishlist = wishlist;
-        // SYNC DIRECTLY TO SECURE PHP GUEST SESSION!
         fetch('Database/update-guest-session.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -701,7 +694,7 @@ function addToWishlist(productId) {
 const chatFAQs = {
     "Where is my order?": "You can track your order by navigating to the 'Order History' tab in your Account Settings.",
     "Do you offer free shipping?": "Yes! All orders automatically qualify for free standard shipping.",
-    "What payment methods work?": "We accept Credit/Debit Cards, GCash, and PayPal.",
+    "What payment methods work?": "We accept GCash and Cash on Delivery.",
     "How do I use the size guide?": "Click the 'Size Guide' button on any product page to see exact measurements for Men's, Women's, and Kids' shoes.",
     "How do I save shoes for later?": "Click the heart icon on any shoe to add it to your Wishlist.",
     "Can I save multiple addresses?": "Yes! Go to 'Saved Addresses' in your Account to add and label multiple delivery locations.",
@@ -1088,48 +1081,46 @@ function renderSearchPanelProducts(query) {
 // FETCH LIVE PRODUCTS FROM MYSQL (WITH CACHE BUSTER)
 function initDatabase() {
     fetch('Database/fetch-products.php?nocache=' + new Date().getTime())
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            localStorage.setItem('pace_products', JSON.stringify(data.products));
-            
-            if (typeof renderProducts === 'function') {
-                const path = window.location.pathname.toLowerCase();
-                if (path.includes('homepage') || path === '/' || path.endsWith('/pace/')) {
-                    renderProducts('ALL', 8);
-                } else if (typeof activeCategory !== 'undefined') {
-                    renderProducts(activeCategory);
-                } else {
-                    renderProducts('ALL');
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                localStorage.setItem('pace_products', JSON.stringify(data.products));
+
+                if (typeof renderProducts === 'function') {
+                    const path = window.location.pathname.toLowerCase();
+                    if (path.includes('homepage') || path === '/' || path.endsWith('/pace/')) {
+                        renderProducts('ALL', 8);
+                    } else if (typeof activeCategory !== 'undefined') {
+                        renderProducts(activeCategory);
+                    } else {
+                        renderProducts('ALL');
+                    }
                 }
+
+                if (typeof renderCartPreview === 'function') renderCartPreview();
+                if (typeof renderWishlistPreview === 'function') renderWishlistPreview();
+                if (typeof renderCartPage === 'function') renderCartPage();
+                if (typeof renderWishlistPage === 'function') renderWishlistPage();
             }
-            
-            if (typeof renderCartPreview === 'function') renderCartPreview();
-            if (typeof renderWishlistPreview === 'function') renderWishlistPreview();
-            if (typeof renderCartPage === 'function') renderCartPage();
-            if (typeof renderWishlistPage === 'function') renderWishlistPage();
-        }
-    })
-    .catch(error => console.error("Database fetch error:", error));
+        })
+        .catch(error => console.error("Database fetch error:", error));
 }
 
-// --- NEW: CREATE GLOBAL LIVE MEMORY VARIABLES ---
-window.currentUser = null; 
+window.currentUser = null;
 window.guestCart = [];
 window.guestWishlist = [];
 
-// INITIALIZE ON PAGE LOAD (THE SYNCHRONIZED SESSION BRIDGE)
+// INITIALIZE ON PAGE LOAD
 window.addEventListener('DOMContentLoaded', () => {
-    
-    // 1. FIRST, SECURE THE SESSION (WITH CACHE BUSTER!)
+
     fetch('Database/fetch-session.php?nocache=' + new Date().getTime())
-        .then(res => res.text()) 
+        .then(res => res.text())
         .then(text => {
             try {
                 const data = JSON.parse(text);
                 if (data.success && data.user) {
                     window.currentUser = data.user;
-                    window.guestCart = []; 
+                    window.guestCart = [];
                     window.guestWishlist = [];
                 } else {
                     window.currentUser = null;
@@ -1140,10 +1131,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 console.error("Session parse error:", text);
             }
 
-            // 2. NOW FETCH PRODUCTS
-            initDatabase(); 
+            initDatabase();
 
-            // 3. RENDER THE PAGE UI
             renderNavbar();
             renderFooter();
             buildCartPanel();
@@ -1151,15 +1140,14 @@ window.addEventListener('DOMContentLoaded', () => {
             buildSearchPanel();
             renderUserMenu();
             buildGlobalChat();
-            
-            // Re-render specific dynamic page content
+
             if (typeof loadAccountData === 'function') loadAccountData();
             if (typeof loadAddressData === 'function') loadAddressData();
             if (typeof loadPaymentData === 'function') loadPaymentData();
         })
         .catch(err => {
             console.error("Network error:", err);
-            initDatabase(); 
+            initDatabase();
             renderNavbar();
             renderFooter();
         });

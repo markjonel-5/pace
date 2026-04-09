@@ -41,7 +41,6 @@ if ($data) {
 
     if ($conn->query($insert) === TRUE) {
         
-        // Deduct Stock
         foreach ($data['items'] as $item) {
             $prodId = $conn->real_escape_string($item['productId']);
             $size = $item['size'];
@@ -60,7 +59,6 @@ if ($data) {
             }
         }
 
-        // --- SEND CONFIRMATION EMAIL ---
         $mail = new PHPMailer(true);
         try {
             $mail->isSMTP();
@@ -77,7 +75,6 @@ if ($data) {
             $mail->isHTML(true);
             $mail->Subject = "Order Confirmed: $id";
             
-            // Build the email body
             $mail->Body = "
             <div style='font-family: Arial, sans-serif; padding: 20px; color: #333;'>
                 <h2 style='color: #C06C37;'>Thank you for your order, $customerName!</h2>
@@ -92,9 +89,7 @@ if ($data) {
             </div>";
 
             $mail->send();
-        } catch (Exception $e) {
-            // Email failed, but we don't want to crash the checkout
-        }
+        } catch (Exception $e) { }
 
         echo json_encode(['success' => true]);
     } else {

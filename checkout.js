@@ -1,12 +1,9 @@
-// ==========================================
-// 1. GLOBAL VARIABLES & HELPERS
-// ==========================================
-let temporaryGuestPayments = []; 
+let temporaryGuestPayments = [];
 
 function getSelectedItems(user) {
     const buyNowItem = JSON.parse(sessionStorage.getItem('pace_buy_now_item'));
     if (buyNowItem) return [buyNowItem];
-    
+
     const cart = user ? user.cart || [] : (window.guestCart || []);
     return cart.filter(item => item.selected !== false);
 }
@@ -19,28 +16,18 @@ function calculateSubtotal(items) {
     }, 0);
 }
 
-// ==========================================
-// 2. INITIALIZATION (RUNS ON PAGE LOAD)
-// ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    // Tiny delay to ensure global.js has populated window.currentUser
     setTimeout(() => {
-        // Setup UI
         loadCheckoutData(window.currentUser);
         setupDeliveryToggle();
         setupInputFormatting();
-        
-        // Setup Forms & Modals
         setupModalCleanup();
         setupAddressForm();
     }, 100);
 });
 
-// ==========================================
-// 3. UI SETUP AND RENDER FUNCTIONS
-// ==========================================
 function loadCheckoutData(user) {
-    // Save existing guest inputs before rewriting the HTML
+
     const currentFName = document.getElementById('checkout-fname') ? document.getElementById('checkout-fname').value : '';
     const currentLName = document.getElementById('checkout-lname') ? document.getElementById('checkout-lname').value : '';
     const currentEmail = document.getElementById('checkout-email') ? document.getElementById('checkout-email').value : '';
@@ -171,7 +158,7 @@ function loadCheckoutData(user) {
         `;
         const addressHeaderBtn = document.querySelector('#checkout-address-box .add-address-btn');
         if (addressHeaderBtn) addressHeaderBtn.style.display = 'none';
-        
+
     } else if (validAddresses.length === 0) {
         addressContainer.innerHTML = `<p style="color: #d9534f; font-size: 15px; font-weight: 500; padding: 15px; background: #fff1f0; border-radius: 8px;">Please click "+ Add Shipping Address" above to continue.</p>`;
     } else {
@@ -195,7 +182,7 @@ function loadCheckoutData(user) {
 
     // Render Payment Area
     const paymentContainer = document.getElementById('checkout-payment-content');
-    
+
     // Find if user has saved GCash numbers
     let validPayments = [];
     if (user && user.payments) {
@@ -203,7 +190,7 @@ function loadCheckoutData(user) {
     }
 
     let paymentHTML = '<div class="checkout-selection-list">';
-    
+
     if (validPayments.length > 0) {
         // Render their saved GCash numbers
         validPayments.forEach((pm, index) => {
@@ -334,9 +321,6 @@ function setupDeliveryToggle() {
     if (defaultDelivery) defaultDelivery.dispatchEvent(new Event('change'));
 }
 
-// ==========================================
-// 4. INPUT FORMATTING & VALIDATION
-// ==========================================
 function setupInputFormatting() {
     const cardInput = document.getElementById('pm-card-number');
     if (cardInput) {
@@ -375,7 +359,6 @@ function setupInputFormatting() {
         });
     }
 
-    // Address and Guest Phone Formatting (9 digits only)
     document.addEventListener('input', function (e) {
         if (e.target && (e.target.id === 'addr-phone' || e.target.id === 'guest-phone')) {
             let numbersOnly = e.target.value.replace(/\D/g, '');
@@ -390,10 +373,7 @@ function setupInputFormatting() {
     });
 }
 
-// ==========================================
-// 5. MODAL CONTROLLERS & CLEANUP
-// ==========================================
-window.openAccountModal = function(modalId) {
+window.openAccountModal = function (modalId) {
     const modal = document.getElementById(modalId);
     const nav = document.querySelector('.navbar-section');
     if (modal) {
@@ -405,7 +385,7 @@ window.openAccountModal = function(modalId) {
     }
 };
 
-window.closeAccountModal = function(modalId) {
+window.closeAccountModal = function (modalId) {
     const modal = document.getElementById(modalId);
     const nav = document.querySelector('.navbar-section');
     if (modal) {
@@ -444,32 +424,28 @@ function setupModalCleanup() {
     }
 }
 
-// ==========================================
-// 6. FORM HANDLERS (ADDRESS)
-// ==========================================
-
 function setupAddressForm() {
     const addressForm = document.getElementById('form-new-address');
     if (addressForm) {
         addressForm.addEventListener('submit', (e) => {
-            e.preventDefault(); 
+            e.preventDefault();
 
             const phoneInput = document.getElementById('addr-phone');
             const phoneWrapper = phoneInput ? phoneInput.closest('.phone-input-wrapper') : null;
             const phoneError = document.getElementById('addr-phone-error');
-            
+
             if (phoneError) phoneError.classList.add('error-hidden');
             if (phoneWrapper) phoneWrapper.classList.remove('input-error');
 
             const rawPhone = phoneInput ? phoneInput.value.replace(/\D/g, '') : '';
-            
+
             if (rawPhone.length !== 9) {
                 if (phoneError) {
                     phoneError.innerText = "Please enter a complete 10-digit mobile number.";
                     phoneError.classList.remove('error-hidden');
                 }
                 if (phoneWrapper) phoneWrapper.classList.add('input-error');
-                return; 
+                return;
             }
 
             const newAddress = {
@@ -491,7 +467,7 @@ function setupAddressForm() {
 
                 addressForm.reset();
                 window.closeAccountModal('address-modal');
-                
+
                 loadCheckoutData(window.currentUser);
                 const defaultDelivery = document.querySelector('input[name="checkout-delivery-speed"]:checked');
                 if (defaultDelivery) defaultDelivery.dispatchEvent(new Event('change'));
@@ -500,33 +476,27 @@ function setupAddressForm() {
     }
 }
 
-// ==========================================
-// 7. CHECKOUT SUBMISSION LOGIC (LIVE DATABASE)
-// ==========================================
 function placeOrder() {
     let currentUser = window.currentUser;
     let hasError = false;
 
-    // Loading State
     const checkoutBtn = document.querySelector('.checkout-btn');
     checkoutBtn.innerText = "PROCESSING...";
     checkoutBtn.style.pointerEvents = "none";
 
-    // Contact Box Validation
     const contactError = document.getElementById('checkout-contact-error');
     const contactContent = document.getElementById('checkout-contact-content');
-    const contactBox = contactContent ? contactContent.parentElement : null; 
+    const contactBox = contactContent ? contactContent.parentElement : null;
     if (contactError) contactError.classList.add('error-hidden');
     if (contactBox) contactBox.classList.remove('box-error');
 
-    // Shipping Box Validation
     const addrError = document.getElementById('checkout-address-error');
     const addressBox = document.getElementById('checkout-address-box');
     if (addrError) addrError.classList.add('error-hidden');
     if (addressBox) addressBox.classList.remove('box-error');
 
     let guestFName = '', guestLName = '', guestEmail = '';
-    
+
     if (!currentUser) {
         guestFName = document.getElementById('checkout-fname').value.trim();
         guestLName = document.getElementById('checkout-lname').value.trim();
@@ -538,7 +508,7 @@ function placeOrder() {
                 contactError.innerText = 'Please provide your complete and correct contact information.';
                 contactError.classList.remove('error-hidden');
             }
-            if (contactBox) contactBox.classList.add('box-error'); 
+            if (contactBox) contactBox.classList.add('box-error');
             hasError = true;
         }
     }
@@ -553,8 +523,8 @@ function placeOrder() {
         if (!currentUser) {
             const gPhoneInput = document.getElementById('guest-phone');
             const gPhoneStr = gPhoneInput ? gPhoneInput.value.trim() : '';
-            const gPhoneRaw = gPhoneStr.replace(/\D/g, ''); 
-            
+            const gPhoneRaw = gPhoneStr.replace(/\D/g, '');
+
             const gRegion = document.getElementById('guest-region') ? document.getElementById('guest-region').value.trim() : '';
             const gCity = document.getElementById('guest-city') ? document.getElementById('guest-city').value.trim() : '';
             const gBrgy = document.getElementById('guest-brgy') ? document.getElementById('guest-brgy').value.trim() : '';
@@ -574,12 +544,12 @@ function placeOrder() {
                     addrError.classList.remove('error-hidden');
                 }
                 if (addressBox) addressBox.classList.add('box-error');
-                
+
                 hasError = true;
             } else {
                 fullShippingAddress = {
                     fullName: `${guestFName} ${guestLName}`.trim(),
-                    phone: '+63 9' + gPhoneRaw, 
+                    phone: '+63 9' + gPhoneRaw,
                     region: gRegion,
                     city: gCity,
                     brgy: gBrgy,
@@ -613,7 +583,7 @@ function placeOrder() {
 
     purchasedItems.forEach(item => {
         let liveProduct = globalProductsValidation.find(p => String(p.id) === String(item.productId));
-        
+
         let specificSizeStock = 0;
         if (liveProduct && typeof liveProduct.stock === 'object') {
             specificSizeStock = liveProduct.stock[item.size] || 0;
@@ -641,9 +611,7 @@ function placeOrder() {
         if (paymentRadio.value === 'COD') {
             paymentMethod = 'COD';
         } else {
-            // If it is NOT COD, it is either the generic "GCash" string, 
-            // or it is the ID of a saved GCash number. Either way, the payment type is GCash!
-            paymentMethod = 'GCash'; 
+            paymentMethod = 'GCash';
         }
     }
 
@@ -665,7 +633,7 @@ function placeOrder() {
     const adminOrderInfo = {
         id: orderId,
         customerEmail: finalCustomerEmail,
-        customerName: finalCustomerName + (currentUser ? '' : ' (Guest)'), 
+        customerName: finalCustomerName + (currentUser ? '' : ' (Guest)'),
         date: orderDate,
         status: 'To Ship',
         totalAmount: finalTotal,
@@ -675,12 +643,8 @@ function placeOrder() {
         shippingAddress: fullShippingAddress || {}
     };
 
-    // ==========================================
-    // PAYMONGO API INTEGRATION (GCASH)
-    // ==========================================
     if (paymentMethod === 'GCash') {
-        
-        // Safety Check: PayMongo requires transactions to be at least 20 PHP
+
         if (finalTotal < 20) {
             alert("PayMongo requires a minimum amount of ₱20.00 for GCash transactions.");
             checkoutBtn.innerText = "PLACE ORDER";
@@ -688,24 +652,20 @@ function placeOrder() {
             return;
         }
 
-        // 1. Save order to memory for after the redirect
         localStorage.setItem('pace_pending_gcash_order', JSON.stringify(adminOrderInfo));
 
-        // 2. Change UI to loading state
         checkoutBtn.innerText = "REDIRECTING TO GCASH...";
 
-        // 3. Get the correct GCash phone number (Saved GCash OR Shipping Phone)
         let gcashPhone = adminOrderInfo.shippingAddress ? adminOrderInfo.shippingAddress.phone : '';
         const paymentRadioObj = document.querySelector('input[name="checkout-payment"]:checked');
         if (paymentRadioObj && paymentRadioObj.value !== 'COD' && paymentRadioObj.value !== 'GCash') {
             let combinedPayments = currentUser ? (currentUser.payments || []) : temporaryGuestPayments;
             const selectedPm = combinedPayments.find(p => p.id.toString() === paymentRadioObj.value);
             if (selectedPm && selectedPm.type === 'GCash') {
-                gcashPhone = selectedPm.data.phone; 
+                gcashPhone = selectedPm.data.phone;
             }
         }
 
-        // 4. Call PayMongo API
         fetch('Database/paymongo.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -713,122 +673,116 @@ function placeOrder() {
                 amount: finalTotal,
                 name: adminOrderInfo.customerName,
                 email: adminOrderInfo.customerEmail,
-                phone: gcashPhone, 
+                phone: gcashPhone,
                 description: orderId,
                 items: adminOrderInfo.items,
-                deliveryFee: deliveryFee,       
-                deliveryType: deliveryTypeName, 
-                origin: window.location.origin + '/pace', 
+                deliveryFee: deliveryFee,
+                deliveryType: deliveryTypeName,
+                origin: window.location.origin + '/pace',
                 successUrl: window.location.origin + '/pace/process-gcash.html',
                 failedUrl: window.location.origin + '/pace/checkout.html'
             })
         })
+            .then(res => res.json())
+            .then(data => {
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    console.error("PayMongo Error Data:", data);
+                    let errorMsg = "Payment Gateway Error. Please try again.";
+                    if (data.details && data.details.errors && data.details.errors.length > 0) {
+                        errorMsg = "PayMongo Error: " + data.details.errors[0].detail;
+                    }
+                    alert(errorMsg);
+
+                    checkoutBtn.innerText = "PLACE ORDER";
+                    checkoutBtn.style.pointerEvents = "auto";
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Could not connect to payment gateway.");
+                checkoutBtn.innerText = "PLACE ORDER";
+                checkoutBtn.style.pointerEvents = "auto";
+            });
+
+        return;
+    }
+
+    fetch('Database/place-order.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(adminOrderInfo)
+    })
         .then(res => res.json())
         .then(data => {
-            if (data.checkout_url) {
-                window.location.href = data.checkout_url; // Go to PayMongo
-            } else {
-                // EXPLICIT ERROR REPORTING: Show exact PayMongo error if it fails
-                console.error("PayMongo Error Data:", data);
-                let errorMsg = "Payment Gateway Error. Please try again.";
-                if (data.details && data.details.errors && data.details.errors.length > 0) {
-                    errorMsg = "PayMongo Error: " + data.details.errors[0].detail;
+            if (data.success) {
+
+                const buyNowItem = JSON.parse(sessionStorage.getItem('pace_buy_now_item'));
+                const newOrderHistoryData = {
+                    id: orderId,
+                    date: orderDate,
+                    items: purchasedItems,
+                    subtotal: subtotal,
+                    deliveryFee: deliveryFee,
+                    total: finalTotal,
+                    status: 'To Ship',
+                    deliveryType: deliveryTypeName,
+                    addressId: selectedAddressId,
+                    payment: paymentMethod
+                };
+
+                if (currentUser) {
+                    if (!currentUser.orderHistory) currentUser.orderHistory = [];
+                    if (!currentUser.notifications) currentUser.notifications = [];
+
+                    currentUser.orderHistory.push(newOrderHistoryData);
+                    currentUser.notifications.unshift({
+                        id: 'NOTIF-' + Date.now(),
+                        title: 'Order Confirmed!',
+                        message: `Your order ${orderId} has been successfully placed and is now processing.`,
+                        date: orderDate,
+                        read: false
+                    });
+
+                    if (!buyNowItem) {
+                        currentUser.cart = currentUser.cart.filter(item => item.selected === false);
+                    }
+
+                    if (window.syncCartToDatabase) window.syncCartToDatabase(currentUser.email, currentUser.cart);
+                    if (window.syncNotificationsToDatabase) window.syncNotificationsToDatabase(currentUser.email, currentUser.notifications);
+                    fetch('Database/update-account.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'update_order_history', email: currentUser.email, orderHistory: currentUser.orderHistory })
+                    });
+
+                } else {
+                    if (!buyNowItem) {
+                        window.guestCart = (window.guestCart || []).filter(item => item.selected === false);
+                        fetch('Database/update-guest-session.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'update_cart', cart: window.guestCart })
+                        });
+                    }
                 }
-                alert(errorMsg);
-                
+
+                if (buyNowItem) sessionStorage.removeItem('pace_buy_now_item');
+
+                const isGuestStr = currentUser ? 'false' : 'true';
+                window.location.href = `success-order.html?orderId=${orderId}&guest=${isGuestStr}`;
+
+            } else {
+                alert("Database Error: " + data.message);
                 checkoutBtn.innerText = "PLACE ORDER";
                 checkoutBtn.style.pointerEvents = "auto";
             }
         })
         .catch(err => {
             console.error(err);
-            alert("Could not connect to payment gateway.");
+            alert("Server Error. Please try again.");
             checkoutBtn.innerText = "PLACE ORDER";
             checkoutBtn.style.pointerEvents = "auto";
         });
-
-        return; // STOP execution here! Do not save to DB yet.
-    }
-    // ==========================================
-
-    // SEND TO LIVE DATABASE!
-    fetch('Database/place-order.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(adminOrderInfo)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            
-            const buyNowItem = JSON.parse(sessionStorage.getItem('pace_buy_now_item'));
-            const newOrderHistoryData = {
-                id: orderId,
-                date: orderDate,
-                items: purchasedItems,
-                subtotal: subtotal,
-                deliveryFee: deliveryFee,
-                total: finalTotal,
-                status: 'To Ship',
-                deliveryType: deliveryTypeName,
-                addressId: selectedAddressId,
-                payment: paymentMethod
-            };
-
-            // Update user's frontend view and MySQL (cart, notifications, history)
-            if (currentUser) {
-                if (!currentUser.orderHistory) currentUser.orderHistory = [];
-                if (!currentUser.notifications) currentUser.notifications = [];
-                
-                currentUser.orderHistory.push(newOrderHistoryData);
-                currentUser.notifications.unshift({
-                    id: 'NOTIF-' + Date.now(),
-                    title: 'Order Confirmed!',
-                    message: `Your order ${orderId} has been successfully placed and is now processing.`,
-                    date: orderDate,
-                    read: false
-                });
-
-                if (!buyNowItem) {
-                    currentUser.cart = currentUser.cart.filter(item => item.selected === false);
-                }
-
-                // --- SYNC LIVE TO MYSQL ---
-                if (window.syncCartToDatabase) window.syncCartToDatabase(currentUser.email, currentUser.cart);
-                if (window.syncNotificationsToDatabase) window.syncNotificationsToDatabase(currentUser.email, currentUser.notifications);
-                fetch('Database/update-account.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'update_order_history', email: currentUser.email, orderHistory: currentUser.orderHistory })
-                });
-
-            } else {
-                // Guests only use localStorage for their temporary cart
-                if (!buyNowItem) {
-                    window.guestCart = (window.guestCart || []).filter(item => item.selected === false);
-                    fetch('Database/update-guest-session.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'update_cart', cart: window.guestCart })
-                    });
-                }
-            }
-
-            if (buyNowItem) sessionStorage.removeItem('pace_buy_now_item');
-
-            const isGuestStr = currentUser ? 'false' : 'true';
-            window.location.href = `success-order.html?orderId=${orderId}&guest=${isGuestStr}`;
-
-        } else {
-            alert("Database Error: " + data.message);
-            checkoutBtn.innerText = "PLACE ORDER";
-            checkoutBtn.style.pointerEvents = "auto";
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Server Error. Please try again.");
-        checkoutBtn.innerText = "PLACE ORDER";
-        checkoutBtn.style.pointerEvents = "auto";
-    });
 }

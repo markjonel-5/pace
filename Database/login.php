@@ -13,31 +13,25 @@ if (!$data) {
 $usernameInput = $conn->real_escape_string($data['username']);
 $passwordInput = $data['password'];
 
-// We use BINARY here to force 100% strict case-sensitive matching!
 $sql = "SELECT * FROM users WHERE BINARY username = '$usernameInput' OR BINARY email = '$usernameInput'";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
     $user = $result->fetch_assoc();
 
-    // Check if the account is blocked
     if ($user['status'] === 'Blocked') {
         echo json_encode(['success' => false, 'message' => 'account_blocked', 'role' => $user['role']]);
         exit;
     }
 
-    // Verify the encrypted password
     if (password_verify($passwordInput, $user['password'])) {
 
-        // Start a secure server session
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_role'] = $user['role'];
         $_SESSION['user_email'] = $user['email'];
 
-        // Remove the password from the array before sending it back to JavaScript for security
         unset($user['password']);
 
-        // FIX: Decode arrays so the frontend doesn't crash on login!
         $user['addresses'] = isset($user['addresses']) ? json_decode($user['addresses'], true) ?: [] : [];
         $user['payments'] = isset($user['payment_methods']) ? json_decode($user['payment_methods'], true) ?: [] : [];
         $user['cart'] = isset($user['cart']) ? json_decode($user['cart'], true) ?: [] : [];

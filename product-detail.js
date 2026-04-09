@@ -7,12 +7,11 @@ const targetName = params.get('name');
 window.onload = function () {
     if (!document.getElementById('pd-name')) return;
     
-    // Fetch directly from the live database to guarantee the page loads!
     fetch('Database/fetch-products.php')
     .then(res => res.json())
     .then(data => {
         if (data.success && data.products.length > 0) {
-            // Keep local storage updated
+
             localStorage.setItem('pace_products', JSON.stringify(data.products));
             
             let product;
@@ -111,15 +110,13 @@ function loadProductDetails(p) {
         sizeContainer.innerHTML = sizes.map(size => {
             let label = (p.type === 'MEN') ? 'M ' + size : (p.type === 'WOMEN') ? 'W ' + size : size;
             
-            // Check specific size quantity
             let qty = 0;
             if (typeof p.stock === 'object' && p.stock !== null) {
                 qty = p.stock[label] || 0; 
             } else {
-                qty = window.getTotalStock(p.stock); // Fallback for old data
+                qty = window.getTotalStock(p.stock);
             }
 
-            // Disable button if qty is 0 by greying it out and crossing the text
             if (qty === 0) {
                 return `<button class="size-btn" disabled style="opacity: 0.5; cursor: not-allowed; text-decoration: line-through; background: #f9f9f9;">${label}</button>`;
             } else {
@@ -128,7 +125,7 @@ function loadProductDetails(p) {
         }).join('');
     }
 
-    // CHECK BADGE STATUS (OUT OF STOCK OR NEW ARRIVAL)
+    // CHECK BADGE STATUS
     const badgeEl = document.getElementById('pd-new-badge');
     if (badgeEl) {
         if (window.getTotalStock(p.stock) === 0) {
@@ -310,7 +307,7 @@ function buyNow(product) {
     }
 }
 
-// PRODUCT REVIEWS LOGIC (NEW: FETCHES FROM MYSQL LIVE DATABASE)
+// PRODUCT REVIEWS LOGIC
 let activeProductReviews = [];
 
 function renderProductReviewSummary(productName) {

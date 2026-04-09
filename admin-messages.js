@@ -2,7 +2,6 @@ let currentSelectedEmail = null;
 window.adminChatUsers = [];
 
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. SECURITY CHECK & DATA LOAD
     fetch('Database/fetch-session.php')
         .then(res => res.json())
         .then(data => {
@@ -11,11 +10,11 @@ window.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             window.currentUser = data.user;
-            
+
             let fName = String(window.currentUser.first_name || window.currentUser.firstName || 'Admin');
             let lName = String(window.currentUser.last_name || window.currentUser.lastName || '');
             const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
-            
+
             document.getElementById('sidebar-initials').innerText = initials;
             document.getElementById('admin-name-display').innerText = `${fName} ${lName}`.trim();
 
@@ -36,7 +35,7 @@ function fetchChatUsers() {
                 window.adminChatUsers = data.users;
                 renderContacts(document.getElementById('contact-search-input')?.value || '');
                 if (currentSelectedEmail) {
-                    openChat(currentSelectedEmail); 
+                    openChat(currentSelectedEmail);
                 }
             }
         });
@@ -60,7 +59,7 @@ function renderContacts(searchQuery = '') {
         const lastB = b.chatHistory[b.chatHistory.length - 1];
         const timeA = lastA.timestamp || Date.parse(lastA.time.replace(' at ', ' ')) || 0;
         const timeB = lastB.timestamp || Date.parse(lastB.time.replace(' at ', ' ')) || 0;
-        return timeB - timeA; 
+        return timeB - timeA;
     });
 
     if (chatUsers.length === 0) {
@@ -109,7 +108,7 @@ window.openChat = function (email) {
     let lName = String(u.last_name || u.lastName || '');
     const fullName = `${fName} ${lName}`.trim();
     const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
-    
+
     let avatarHTML = u.profilePic
         ? `<img src="${u.profilePic}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">`
         : `<div class="contact-avatar" style="width: 50px; height: 50px; font-size: 20px; background-color: #FFF3EB; color: var(--brand-color);">${initials}</div>`;
@@ -125,13 +124,12 @@ window.openChat = function (email) {
     let isUpdated = false;
     u.chatHistory.forEach(msg => {
         if (msg.sender === 'user' && !msg.read) {
-            msg.read = true; 
+            msg.read = true;
             isUpdated = true;
         }
     });
 
     if (isUpdated) {
-        // Sync auto-read to database
         fetch('Database/admin-reply-chat.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -186,14 +184,13 @@ window.sendAdminMessage = function () {
             read: true
         });
 
-        // SEND DIRECTLY TO LIVE MYSQL DATABASE!
         fetch('Database/admin-reply-chat.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: currentSelectedEmail, chatHistory: window.adminChatUsers[userIndex].chatHistory })
         }).then(() => {
             input.value = '';
-            fetchChatUsers(); // Refresh to lock it in
+            fetchChatUsers();
         });
     }
 };

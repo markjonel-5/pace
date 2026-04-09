@@ -1,6 +1,3 @@
-/* =========================================
-   PAGE SPECIFIC LAYOUT
-   ========================================= */
 #products-table-wrapper {
     flex: 1;
     display: flex;
@@ -16,20 +13,12 @@
     padding-bottom: 10px;
 }
 
-/* =========================================
-   TABLE CONTROLS (Top Right)
-   ========================================= */
 .table-controls-right {
     display: flex;
     gap: 15px;
     align-items: center;
 }
 
-/* =========================================
-   CUSTOM SELECT DROPDOWN (FLAT ICON)
-   ========================================= */
-
-/* 1. WRAPPER STYLE */
 .custom-select-wrapper {
     position: relative;
     display: inline-flex;
@@ -45,10 +34,8 @@
     padding-top: 5px;
 }
 
-/* 3. ADMIN SELECT STYLE */
 .admin-select {
     padding: 10px 35px 10px 12px;
-    /* Ang 35px sa right ay para hindi pumatong ang text sa icon */
     border-radius: 6px;
     border: 1px solid #eaeaea;
     background: #f5f5f5;
@@ -59,7 +46,6 @@
     transition: all 0.2s ease;
 }
 
-/* Focus and Hover states */
 .admin-select:focus {
     border-color: var(--brand-color);
 }
@@ -124,7 +110,6 @@
     font-size: 12px;
 }
 
-/* STATUS BADGES */
 .status-badge {
     padding: 4px 10px;
     border-radius: 20px;
@@ -148,7 +133,6 @@
     color: #e74c3c;
 }
 
-/* ACTION BUTTONS */
 .action-btn {
     background: none;
     border: none;
@@ -167,9 +151,6 @@
     color: #e74c3c;
 }
 
-/* =========================================
-   ADMIN FORM MODAL
-   ========================================= */
 .admin-form-modal {
     max-width: 500px;
     padding: 0;
@@ -277,9 +258,6 @@
     opacity: 0.9;
 }
 
-/* =========================================
-   ACCOUNT-STYLE MODALS & FORMS (FIXED)
-   ========================================= */
 .account-dialog {
     border: none;
     outline: none;
@@ -288,11 +266,9 @@
     width: 90%;
     max-width: 600px;
     box-sizing: border-box;
-    /* FIX: Pinipigilan ang paglampas ng content */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     margin: auto;
     overflow-x: hidden;
-    /* FIX: Tatanggalin ang horizontal scrollbar */
 }
 
 .account-dialog::backdrop {
@@ -329,7 +305,6 @@
     margin: 0;
 }
 
-/* FIX: Binalik sa eksaktong design ng Address Book ang X button */
 .dialog-close {
     background: none;
     border: none;
@@ -374,7 +349,6 @@
     padding-left: 3px;
 }
 
-/* FIX: Box-sizing para hindi lumampas sa form container */
 .account-input-field {
     padding: 12px 15px;
     border: 1px solid #ddd;
@@ -410,9 +384,6 @@
     background-color: var(--darkgray-text);
 }
 
-/* =========================================
-   CONFIRMATION (DELETE) MODAL STYLES
-   ========================================= */
 .confirm-dialog {
     max-width: 400px;
     padding: 30px 24px 20px;
@@ -488,9 +459,6 @@
     background: var(--darkgray-text);
 }
 
-/* =========================================
-   PAGINATION STYLES
-   ========================================= */
 .table-scroll-container {
     flex: 1;
     overflow-y: hidden;
@@ -530,9 +498,6 @@
     border-color: var(--brand-color);
 }
 
-/* =========================================
-   MEDIA UPLOAD STYLES (Copied from Order History)
-   ========================================= */
 .media-upload-box {
     position: relative;
     width: 60px;
@@ -602,9 +567,6 @@
     background: #c9302c;
 }
 
-/* =========================================
-   NEW DYNAMIC SIZE GRID STYLES
-   ========================================= */
 .size-stock-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -639,7 +601,6 @@
     background: #fff;
 }
 
-/* Fallback responsive rule if modal shrinks on smaller screens */
 @media (max-width: 500px) {
     .size-stock-grid {
         grid-template-columns: repeat(3, 1fr);

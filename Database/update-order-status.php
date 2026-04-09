@@ -13,21 +13,17 @@ $data = json_decode(file_get_contents("php://input"), true);
 if ($data && isset($data['id']) && isset($data['status'])) {
     $id = $conn->real_escape_string($data['id']);
     $status = $conn->real_escape_string($data['status']);
-    $messageType = $data['messageType'] ?? 'shipped'; // 'shipped' or 'packed'
+    $messageType = $data['messageType'] ?? 'shipped';
 
-    // Update database
     if ($conn->query("UPDATE orders SET status = '$status' WHERE id = '$id'") === TRUE) {
         
-        // FIX: Only send an email if the order is NOT being marked as "Completed"
         if ($status !== 'Completed') {
-            // Fetch order details so we can email the customer
             $result = $conn->query("SELECT customer_name, customer_email FROM orders WHERE id = '$id'");
             if ($result->num_rows > 0) {
                 $order = $result->fetch_assoc();
                 $email = $order['customer_email'];
                 $name = $order['customer_name'];
 
-                // --- SEND SHIPPED/PACKED EMAIL WITH BUTTON ---
                 $mail = new PHPMailer(true);
                 try {
                     $mail->isSMTP();
@@ -42,7 +38,6 @@ if ($data && isset($data['id']) && isset($data['status'])) {
                     $mail->addAddress($email, $name);
                     $mail->isHTML(true);
 
-                    // Customize text based on delivery type
                     if ($messageType === 'packed') {
                         $mail->Subject = "Your Order is Ready for Pick-Up! ($id)";
                         $headline = "Your order is packed and ready!";
@@ -53,7 +48,6 @@ if ($data && isset($data['id']) && isset($data['status'])) {
                         $subtext = "Great news! Your package has been handed over to our courier and is heading to your address.";
                     }
 
-                    // Point to the new PHP file instead of the HTML file
                     $buttonLink = "http://localhost/pace/complete-order.php?id=" . $id;
 
                     $mail->Body = "

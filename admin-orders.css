@@ -1,6 +1,4 @@
-/* =========================================
-   1. PAGE SETUP & LAYOUT
-   ========================================= */
+/* PAGE SETUP & LAYOUT */
 
 .admin-content {
     height: calc(100vh - 120px);
@@ -25,9 +23,7 @@
     overflow: hidden;
 }
 
-/* =========================================
-   2. CUSTOM SCROLLBAR
-   ========================================= */
+/* CUSTOM SCROLLBAR */
 .table-scroll-container {
     flex: 1;
     overflow-y: scroll;
@@ -45,9 +41,7 @@
     border-radius: 4px;
 }
 
-/* =========================================
-   3. DASHBOARD STAT BOXES
-   ========================================= */
+/* DASHBOARD STAT BOXES */
 .order-stat-box {
     cursor: pointer;
     transition: all 0.3s ease;
@@ -63,13 +57,10 @@
     border-left: 4px solid var(--brand-color);
 }
 
-/* =========================================
-   4. FIXED DASHBOARD TABLE
-   ========================================= */
+/* FIXED DASHBOARD TABLE */
 .dashboard-table {
     width: 100%;
     table-layout: fixed;
-    /* Pinipigil ang pag-alon/pag-shift ng table */
     border-collapse: collapse;
 }
 
@@ -120,9 +111,7 @@
     opacity: 0.8;
 }
 
-/* =========================================
-   5. SLIDE-OUT PANEL (ORDER DETAILS)
-   ========================================= */
+/* SLIDE-OUT PANEL (ORDER DETAILS) */
 #order-details-overlay {
     position: fixed;
     top: 0;
@@ -300,9 +289,7 @@
     margin-bottom: 0;
 }
 
-/* =========================================
-   6. CONFIRMATION MODAL
-   ========================================= */
+/* CONFIRMATION MODAL */
 .account-dialog {
     border: none;
     outline: none;

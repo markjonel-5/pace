@@ -1,7 +1,7 @@
 /* SAVED ADDRESSES FUNCTION START */
 window.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('address-list-container')) {
-        setTimeout(loadAddressData, 100); 
+        setTimeout(loadAddressData, 100);
     }
 
     const addressForm = document.getElementById('form-new-address');
@@ -90,7 +90,7 @@ function handleSaveAddress(e) {
     const phoneInput = document.getElementById('addr-phone');
     const phoneWrapper = phoneInput.closest('.phone-input-wrapper');
     const phoneError = document.getElementById('addr-phone-error');
-    
+
     phoneError.classList.add('error-hidden');
     phoneWrapper.classList.remove('input-error');
 
@@ -117,7 +117,7 @@ function handleSaveAddress(e) {
     if (window.currentUser) {
         if (!window.currentUser.addresses) window.currentUser.addresses = [];
         window.currentUser.addresses.push(newAddress);
-        
+
         if (window.syncAddressesToDatabase) {
             window.syncAddressesToDatabase(window.currentUser.email, window.currentUser.addresses);
         }
@@ -130,7 +130,7 @@ function handleSaveAddress(e) {
 
 let addressIdToDelete = null;
 
-window.openDeleteAddressModal = function(id) {
+window.openDeleteAddressModal = function (id) {
     addressIdToDelete = id;
     const modal = document.getElementById('delete-address-modal');
     const nav = document.querySelector('.navbar-section');
@@ -144,20 +144,20 @@ window.openDeleteAddressModal = function(id) {
     }
 };
 
-window.closeDeleteAddressModal = function() {
+window.closeDeleteAddressModal = function () {
     const modal = document.getElementById('delete-address-modal');
     if (modal) {
-        modal.close(); 
+        modal.close();
         addressIdToDelete = null;
     }
 };
 
-window.executeDeleteAddress = function() {
+window.executeDeleteAddress = function () {
     if (!addressIdToDelete) return;
 
     if (window.currentUser && window.currentUser.addresses) {
         window.currentUser.addresses = window.currentUser.addresses.filter(addr => addr.id !== addressIdToDelete);
-        
+
         if (window.syncAddressesToDatabase) {
             window.syncAddressesToDatabase(window.currentUser.email, window.currentUser.addresses);
         }

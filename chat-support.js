@@ -45,7 +45,6 @@ function handlePageChatEnter(event) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    // Wait for global.js to fetch the user
     setTimeout(renderPageChat, 150);
 });
 

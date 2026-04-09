@@ -1,20 +1,16 @@
 <?php
-// "use" statements MUST be at the very top!
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-session_start(); // Start a session to temporarily hold the user's data and code
+session_start();
 header('Content-Type: application/json');
 
-// Include Database Connection
 require 'pace-database.php';
 
-// Include PHPMailer library files
 require 'PHPMailer/Exception.php';
 require 'PHPMailer/PHPMailer.php';
 require 'PHPMailer/SMTP.php';
 
-// Get the JSON data sent from JavaScript
 $data = json_decode(file_get_contents("php://input"), true);
 
 if (!$data) {
@@ -22,14 +18,12 @@ if (!$data) {
     exit;
 }
 
-// Clean the inputs
 $fname = $conn->real_escape_string($data['firstName']);
 $lname = $conn->real_escape_string($data['lastName']);
 $email = $conn->real_escape_string($data['email']);
 $username = $conn->real_escape_string($data['username']);
 $password = $data['password'];
 
-// 1. Check if email or username already exists in the database
 $check_sql = "SELECT * FROM users WHERE email = '$email' OR username = '$username'";
 $result = $conn->query($check_sql);
 
@@ -43,13 +37,10 @@ if ($result->num_rows > 0) {
     exit;
 }
 
-// 2. Hash the password
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-// 3. Generate a random 6-digit code
 $verification_code = rand(100000, 999999);
 
-// 4. Save user details and the code into a PHP Session (The "Waiting Room")
 $_SESSION['temp_user'] = [
     'fname' => $fname,
     'lname' => $lname,
@@ -59,29 +50,22 @@ $_SESSION['temp_user'] = [
     'verify_code' => $verification_code
 ];
 
-// 5. Send the Email using PHPMailer
 $mail = new PHPMailer(true);
 
 try {
-    // Server settings
     $mail->isSMTP();
     $mail->Host       = 'smtp.gmail.com';
     $mail->SMTPAuth   = true;
     
-    // Use the EXACT email you created the password with
     $mail->Username   = 'pace.store.admin@gmail.com'; 
-    
-    // Type the 16 letters with NO SPACES
     $mail->Password   = 'uxfnlpgymzqaumvj'; 
     
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port       = 587;
 
-    // Email Details (Make sure this matches the Username above)
     $mail->setFrom('pace.store.admin@gmail.com', 'PACE Store'); 
-    $mail->addAddress($email, $fname); // Send TO the user's email
+    $mail->addAddress($email, $fname);
 
-    // Content
     $mail->isHTML(true);
     $mail->Subject = 'Your PACE Store Verification Code';
     $mail->Body    = "
@@ -95,7 +79,6 @@ try {
     ";
 
     $mail->send();
-    // Tell JavaScript it was successful and to redirect the user
     echo json_encode(['success' => true, 'redirect' => 'verify']);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => 'Message could not be sent. Mailer Error: ' . $mail->ErrorInfo]);

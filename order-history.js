@@ -6,75 +6,70 @@ window.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // FETCH LIVE ORDERS WITH CACHE BUSTER!
         fetch('Database/fetch-orders.php?nocache=' + new Date().getTime())
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                let liveOrders = data.orders;
-                let isUpdated = false;
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    let liveOrders = data.orders;
+                    let isUpdated = false;
 
-                if (window.currentUser.orderHistory) {
-                    window.currentUser.orderHistory.forEach(localOrder => {
-                        let liveOrder = liveOrders.find(o => String(o.id) === String(localOrder.id));
-                        
-                        // IF ADMIN SHIPPED IT, UPDATE IT AND PUSH A NOTIFICATION!
-                        if (liveOrder && liveOrder.status !== localOrder.status) {
-                            localOrder.status = liveOrder.status;
-                            isUpdated = true;
+                    if (window.currentUser.orderHistory) {
+                        window.currentUser.orderHistory.forEach(localOrder => {
+                            let liveOrder = liveOrders.find(o => String(o.id) === String(localOrder.id));
 
-                            let notifTitle = "Order Update";
-                            let notifMsg = `Your order ${localOrder.id} status is now: ${liveOrder.status}`;
-                            
-                            if (liveOrder.status === 'To Receive') {
-                                notifTitle = "Order Shipped!";
-                                notifMsg = `Your order ${localOrder.id} is out for delivery or ready for in-store collection.`;
-                            } else if (liveOrder.status === 'Completed') {
-                                notifTitle = "Order Completed";
-                                notifMsg = `Your order ${localOrder.id} has been marked as completed. Thank you for shopping with PACE!`;
+                            if (liveOrder && liveOrder.status !== localOrder.status) {
+                                localOrder.status = liveOrder.status;
+                                isUpdated = true;
+
+                                let notifTitle = "Order Update";
+                                let notifMsg = `Your order ${localOrder.id} status is now: ${liveOrder.status}`;
+
+                                if (liveOrder.status === 'To Receive') {
+                                    notifTitle = "Order Shipped!";
+                                    notifMsg = `Your order ${localOrder.id} is out for delivery or ready for in-store collection.`;
+                                } else if (liveOrder.status === 'Completed') {
+                                    notifTitle = "Order Completed";
+                                    notifMsg = `Your order ${localOrder.id} has been marked as completed. Thank you for shopping with PACE!`;
+                                }
+
+                                window.currentUser.notifications = window.currentUser.notifications || [];
+                                let isDuplicate = window.currentUser.notifications.some(n => n.message === notifMsg);
+
+                                if (!isDuplicate) {
+                                    window.currentUser.notifications.unshift({
+                                        id: 'NOTIF-' + Date.now() + Math.floor(Math.random() * 1000),
+                                        title: notifTitle,
+                                        message: notifMsg,
+                                        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                                        read: false
+                                    });
+                                }
                             }
-
-                            // --- ANG DUPLICATE CHECKER ---
-                            window.currentUser.notifications = window.currentUser.notifications || [];
-                            let isDuplicate = window.currentUser.notifications.some(n => n.message === notifMsg);
-
-                            // Kung wala pa 'yung notification na 'to, saka lang siya mag-a-add!
-                            if (!isDuplicate) {
-                                window.currentUser.notifications.unshift({
-                                    id: 'NOTIF-' + Date.now() + Math.floor(Math.random() * 1000),
-                                    title: notifTitle,
-                                    message: notifMsg,
-                                    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-                                    read: false
-                                });
-                            }
-                        }
-                    });
-                }
-
-                // Push everything to MySQL
-                if (isUpdated) {
-                    fetch('Database/update-account.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'update_order_history', email: window.currentUser.email, orderHistory: window.currentUser.orderHistory })
-                    });
-                    if (window.syncNotificationsToDatabase) {
-                        window.syncNotificationsToDatabase(window.currentUser.email, window.currentUser.notifications);
+                        });
                     }
-                    if (typeof renderNotification === 'function') renderNotification(window.currentUser);
-                }
-            }
 
-            setupGlobalDialogs();
-            updateNotificationBadges(window.currentUser.orderHistory || []);
-            const listContainer = document.getElementById('order-history-list');
-            if (listContainer) {
-                setupOrderTabs();
-                renderOrderHistory('All');
-            }
-        })
-        .catch(err => console.error("Error syncing orders:", err));
+                    if (isUpdated) {
+                        fetch('Database/update-account.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'update_order_history', email: window.currentUser.email, orderHistory: window.currentUser.orderHistory })
+                        });
+                        if (window.syncNotificationsToDatabase) {
+                            window.syncNotificationsToDatabase(window.currentUser.email, window.currentUser.notifications);
+                        }
+                        if (typeof renderNotification === 'function') renderNotification(window.currentUser);
+                    }
+                }
+
+                setupGlobalDialogs();
+                updateNotificationBadges(window.currentUser.orderHistory || []);
+                const listContainer = document.getElementById('order-history-list');
+                if (listContainer) {
+                    setupOrderTabs();
+                    renderOrderHistory('All');
+                }
+            })
+            .catch(err => console.error("Error syncing orders:", err));
 
         const reviewTextInput = document.getElementById('review-text');
         if (reviewTextInput) {
@@ -198,28 +193,25 @@ window.openOrderDetails = function (orderId) {
 
 window.updateOrderStatus = function (newStatus, title, messageTemplate) {
     if (!window.globalActiveOrderId || !window.currentUser) return;
-    
+
     let orderId = window.globalActiveOrderId;
 
-    // --- SEND UPDATE TO LIVE DATABASE! ---
     fetch('Database/update-order-status.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: orderId, status: newStatus })
     }).catch(err => console.error("Database Update Error:", err));
 
-    // Update live memory locally for instant UI changes
     let targetOrder = window.currentUser.orderHistory.find(o => o.id === orderId);
     if (targetOrder) targetOrder.status = newStatus;
 
-    // --- ANG DUPLICATE CHECKER ---
     let exactMessage = messageTemplate.replace('{id}', orderId);
     window.currentUser.notifications = window.currentUser.notifications || [];
     let isDuplicate = window.currentUser.notifications.some(n => n.message === exactMessage);
 
     if (!isDuplicate) {
         window.currentUser.notifications.unshift({
-            id: 'NOTIF-' + Date.now(), 
+            id: 'NOTIF-' + Date.now(),
             title: title,
             message: exactMessage,
             date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
@@ -276,7 +268,7 @@ function updateNotificationBadges(orders) {
 
 function renderOrderHistory(filterStatus) {
     if (!window.currentUser) return;
-    
+
     const allOrders = (window.currentUser.orderHistory || []).slice().reverse();
     updateNotificationBadges(allOrders);
 
@@ -398,7 +390,7 @@ document.getElementById('upload-photos')?.addEventListener('change', function (e
     }
 
     files.forEach(file => {
-        if (file.size > 1 * 1024 * 1024) { 
+        if (file.size > 1 * 1024 * 1024) {
             errorMsg.innerText = "Photo is too large (Max 1MB).";
             errorMsg.style.display = 'block';
             return;
@@ -426,7 +418,7 @@ document.getElementById('upload-video')?.addEventListener('change', function (e)
         return;
     }
 
-    if (file.size > 2 * 1024 * 1024) { 
+    if (file.size > 2 * 1024 * 1024) {
         errorMsg.innerText = "Video is too large (Max 2MB).";
         errorMsg.style.display = 'block';
         this.value = '';
@@ -531,7 +523,7 @@ window.closeMediaPreview = function () {
 
 window.submitProductReview = function () {
     if (!window.currentUser) return;
-    
+
     const textInput = document.getElementById('review-text');
     const text = textInput.value.trim();
     let hasError = false;
@@ -565,15 +557,13 @@ window.submitProductReview = function () {
     if (targetOrder && targetOrder.items[currentReviewItemIndex]) {
         targetOrder.items[currentReviewItemIndex].reviewed = true;
     }
-    
-    // Send updated order history (to mark item as reviewed) to database!
+
     fetch('Database/update-account.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update_order_history', email: window.currentUser.email, orderHistory: window.currentUser.orderHistory })
     });
 
-    // --- NEW: SEND REVIEW DIRECTLY TO MYSQL! ---
     fetch('Database/submit-review.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

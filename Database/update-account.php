@@ -19,7 +19,6 @@ if ($action === 'update_profile') {
     $phone = $conn->real_escape_string($data['phone']);
     $username = $conn->real_escape_string($data['username']);
 
-    // If they typed a password, verify it securely in the database!
     if (!empty($data['currentPassword']) && !empty($data['newPassword'])) {
         $check = $conn->query("SELECT password FROM users WHERE email='$email'");
         if ($check->num_rows > 0) {
@@ -33,7 +32,6 @@ if ($action === 'update_profile') {
             }
         }
     } else {
-        // Just update the text info
         $sql = "UPDATE users SET first_name='$fname', last_name='$lname', phone='$phone', username='$username' WHERE email='$email'";
     }
 

@@ -1,4 +1,3 @@
-/* TOTOONG FIX PARA SA SCROLLBAR NG TABLE */
 .users-scroll-fix {
     display: block;
     max-height: calc(100vh - 350px);
@@ -16,7 +15,6 @@
     border-radius: 4px;
 }
 
-/* User Table specific styles */
 .user-info-cell {
     display: flex;
     align-items: center;
@@ -69,7 +67,6 @@
     text-transform: uppercase;
 }
 
-/* User Status Badges */
 .badge-active {
     background: #e8f5e9;
     color: #1b8f50;
@@ -92,16 +89,14 @@
     display: inline-block;
 }
 
-/* User Profile Panel Styles */
 #order-details-panel {
     display: flex;
     flex-direction: column;
     height: 100vh;
 }
 
-/* Fix para mawala ang scrollbar kapag hindi kailangan sa modals */
 .od-body {
-    padding: 20px 30px; /* Pantay na ang padding sa lahat ng gilid */
+    padding: 20px 30px;
     overflow-y: auto; 
     flex: 1; 
 }
@@ -112,9 +107,6 @@
     margin-bottom: 25px;
 }
 
-
-
-/* Custom Webkit Scrollbar para manipis at hindi mag-take ng malaking space */
 .od-body::-webkit-scrollbar {
     width: 4px;
 }
@@ -207,7 +199,6 @@
     margin-bottom: 10px;
 }
 
-/* Action Buttons (Fixed Bottom) */
 .up-actions-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;

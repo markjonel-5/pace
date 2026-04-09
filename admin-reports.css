@@ -1,4 +1,3 @@
-/* Layout fixed height just like admin-orders */
 .admin-content {
     height: calc(100vh - 120px);
     display: flex;
@@ -7,7 +6,6 @@
     background-color: #fff;
 }
 
-/* PDF Button Styling */
 .pdf-btn {
     background: var(--brand-color);
     color: #fff;
@@ -26,7 +24,6 @@
     opacity: 0.8;
 }
 
-/* Big Chart Card taking the rest of the space */
 .big-chart-card {
     flex: 1;
     display: flex;
@@ -69,11 +66,14 @@
     border-radius: 2px;
 }
 
-/* --- BRAND COLORS --- */
-.rev-box { background-color: var(--brand-color); }
-.ord-box { background-color: #E6A57A; } /* A light, soft shade of your brand color */
+.rev-box {
+    background-color: var(--brand-color);
+}
 
-/* The Double Bar Chart Area */
+.ord-box {
+    background-color: #E6A57A;
+}
+
 .report-chart-container {
     flex: 1;
     position: relative;
@@ -83,7 +83,10 @@
 
 .chart-grid {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 30px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 30px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -120,19 +123,24 @@
     gap: 5px;
     height: 100%;
     align-items: flex-end;
-    width: 80px; /* Made the bars wider */
+    width: 80px;
 }
 
 .bar {
     flex: 1;
     border-radius: 4px 4px 0 0;
-    min-height: 5px; /* Taller base height so zero-months are easy to hover */
+    min-height: 5px;
     transition: 0.2s;
     cursor: pointer;
 }
 
-.bar.rev { background-color: var(--brand-color); }
-.bar.ord { background-color: #E6A57A; } /* Light brand color */
+.bar.rev {
+    background-color: var(--brand-color);
+}
+
+.bar.ord {
+    background-color: #E6A57A;
+}
 
 .bar:hover {
     background-color: var(--darkgray-text);
@@ -145,7 +153,6 @@
     margin-top: 10px;
 }
 
-/* --- HOVER TOOLTIP STYLING (Like your image) --- */
 #report-tooltip {
     position: fixed;
     background: #333333;
@@ -160,11 +167,10 @@
     z-index: 9999;
     transform: translate(-50%, -100%);
     margin-top: -10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     white-space: nowrap;
 }
 
-/* The little triangle arrow pointing down */
 #report-tooltip::after {
     content: '';
     position: absolute;
@@ -174,4 +180,10 @@
     border-width: 6px;
     border-style: solid;
     border-color: #333333 transparent transparent transparent;
+}
+
+.is-printing {
+    width: 100% !important;
+    padding: 10px !important;
+    background: #ffffff !important;
 }

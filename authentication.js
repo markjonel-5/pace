@@ -142,36 +142,33 @@ window.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify(newUser)
             })
-            .then(response => response.json()) 
-            .then(data => {
-                if (data.success) {
-                    // Redirect to the verify code page!
-                    window.location.href = "verify-code.html";
-                } else {
-                    // FIX: Unfreeze the button if there is an error
-                    if (submitBtn) {
-                        submitBtn.innerText = "CREATE ACCOUNT";
-                        submitBtn.style.pointerEvents = "auto";
-                    }
-                    
-                    // Handle errors sent back from PHP (Email or Username already exists)
-                    if (data.message === 'email_exists') {
-                        showError('signup-email', 'This email is already registered.');
-                    } else if (data.message === 'username_exists') {
-                        showError('signup-username', 'This username is already taken.');
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = "verify-code.html";
                     } else {
-                        alert("Error: " + data.message);
+
+                        if (submitBtn) {
+                            submitBtn.innerText = "CREATE ACCOUNT";
+                            submitBtn.style.pointerEvents = "auto";
+                        }
+
+                        if (data.message === 'email_exists') {
+                            showError('signup-email', 'This email is already registered.');
+                        } else if (data.message === 'username_exists') {
+                            showError('signup-username', 'This username is already taken.');
+                        } else {
+                            alert("Error: " + data.message);
+                        }
                     }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while connecting to the server. Check console for details.');
-            });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while connecting to the server. Check console for details.');
+                });
         });
     }
 
-    // LOGIN FUNCTION
     // LOGIN FUNCTION
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -186,44 +183,41 @@ window.addEventListener('DOMContentLoaded', () => {
             loginBtn.innerText = "LOGGING IN...";
             loginBtn.style.pointerEvents = "none";
 
-            // Send data to our new login.php file
             fetch('Database/login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: usernameInput, password: passwordInput })
             })
-            .then(response => response.json())
-            .then(data => {
-                loginBtn.innerText = "LOGIN";
-                loginBtn.style.pointerEvents = "auto";
+                .then(response => response.json())
+                .then(data => {
+                    loginBtn.innerText = "LOGIN";
+                    loginBtn.style.pointerEvents = "auto";
 
-                if (data.success) {
-                    // FIX: Removed localStorage! The server (XAMPP) now remembers the user securely.
-                    // Just redirect them based on their role!
-                    if (data.user.role === 'admin') {
-                        window.location.href = "admin-dashboard.html";
+                    if (data.success) {
+                        if (data.user.role === 'admin') {
+                            window.location.href = "admin-dashboard.html";
+                        } else {
+                            window.location.href = "homepage.html";
+                        }
                     } else {
-                        window.location.href = "homepage.html";
+                        if (data.message === 'user_not_found') {
+                            showError('login-username', 'Username or Email not found.');
+                        } else if (data.message === 'wrong_password') {
+                            showError('login-password', 'Incorrect password.');
+                        } else if (data.message === 'account_blocked') {
+                            const roleText = data.role === 'admin' ? 'Admin' : 'Account';
+                            showError('login-username', `${roleText} Blocked. Please contact us for assistance.`);
+                        } else {
+                            alert("Error: " + data.message);
+                        }
                     }
-                } else {
-                    if (data.message === 'user_not_found') {
-                        showError('login-username', 'Username or Email not found.');
-                    } else if (data.message === 'wrong_password') {
-                        showError('login-password', 'Incorrect password.');
-                    } else if (data.message === 'account_blocked') {
-                        const roleText = data.role === 'admin' ? 'Admin' : 'Account';
-                        showError('login-username', `${roleText} Blocked. Please contact us for assistance.`);
-                    } else {
-                        alert("Error: " + data.message);
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                loginBtn.innerText = "LOGIN";
-                loginBtn.style.pointerEvents = "auto";
-                alert("Server error. Please try again.");
-            });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loginBtn.innerText = "LOGIN";
+                    loginBtn.style.pointerEvents = "auto";
+                    alert("Server error. Please try again.");
+                });
         });
     }
 
@@ -273,126 +267,115 @@ document.getElementById('terms-modal')?.addEventListener('close', () => {
     if (nav) nav.style.right = '0px';
 });
 
-// ==========================================
-    // OTP INPUT LOGIC & TIMER
-    // ==========================================
-    const otpInputs = document.querySelectorAll('.otp-input');
-    let resendTimerInterval;
+const otpInputs = document.querySelectorAll('.otp-input');
+let resendTimerInterval;
 
-    function startResendTimer() {
-        let timeLeft = 30;
-        const timerSpan = document.getElementById('resend-timer');
-        const timerText = document.getElementById('timer-text');
-        const resendText = document.getElementById('resend-text');
-        
-        if (!timerSpan) return;
+function startResendTimer() {
+    let timeLeft = 30;
+    const timerSpan = document.getElementById('resend-timer');
+    const timerText = document.getElementById('timer-text');
+    const resendText = document.getElementById('resend-text');
 
-        timerText.style.display = 'block';
-        resendText.style.display = 'none';
+    if (!timerSpan) return;
+
+    timerText.style.display = 'block';
+    resendText.style.display = 'none';
+    timerSpan.innerText = timeLeft;
+
+    clearInterval(resendTimerInterval);
+    resendTimerInterval = setInterval(() => {
+        timeLeft--;
         timerSpan.innerText = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(resendTimerInterval);
+            timerText.style.display = 'none';
+            resendText.style.display = 'block';
+        }
+    }, 1000);
+}
 
-        clearInterval(resendTimerInterval);
-        resendTimerInterval = setInterval(() => {
-            timeLeft--;
-            timerSpan.innerText = timeLeft;
-            if (timeLeft <= 0) {
-                clearInterval(resendTimerInterval);
-                timerText.style.display = 'none';
-                resendText.style.display = 'block';
+if (document.getElementById('verify-form')) {
+    startResendTimer();
+
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            if (e.target.value.length > 1) {
+                e.target.value = e.target.value.slice(0, 1);
             }
-        }, 1000);
-    }
-
-    if (document.getElementById('verify-form')) {
-        startResendTimer(); // Start timer when page loads
-        
-        // Auto-focus and backspace logic for the 6 boxes
-        otpInputs.forEach((input, index) => {
-            input.addEventListener('input', (e) => {
-                if (e.target.value.length > 1) {
-                    e.target.value = e.target.value.slice(0, 1); // Only allow 1 number
-                }
-                if (e.target.value !== '' && index < otpInputs.length - 1) {
-                    otpInputs[index + 1].focus(); // Jump forward
-                }
-            });
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
-                    otpInputs[index - 1].focus(); // Jump backward
-                }
-            });
-            input.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const pastedData = e.clipboardData.getData('text').trim().replace(/\D/g, '').slice(0, 6);
-                pastedData.split('').forEach((char, i) => {
-                    if (i < otpInputs.length) otpInputs[i].value = char;
-                });
-                if (pastedData.length < 6) otpInputs[pastedData.length].focus();
-                else otpInputs[5].focus();
-            });
+            if (e.target.value !== '' && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+            }
         });
-    }
-
-    // ==========================================
-    // VERIFY CODE FUNCTION (NO ALERTS)
-    // ==========================================
-    const verifyForm = document.getElementById('verify-form');
-    if (verifyForm) {
-        verifyForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            // Combine all 6 inputs into one string
-            const codeInput = Array.from(otpInputs).map(input => input.value).join('');
-            const errorMsg = document.getElementById('verify-error-msg');
-            const verifyBtn = document.getElementById('verify-btn');
-
-            if (codeInput.length < 6) {
-                errorMsg.innerText = "Please enter the full 6-digit code.";
-                errorMsg.style.display = 'block';
-                errorMsg.style.fontSize = '14px';
-                errorMsg.style.opacity = '1';
-                errorMsg.style.visibility = 'visible';
-                errorMsg.classList.add('show-error');
-                return;
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                otpInputs[index - 1].focus();
             }
+        });
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').trim().replace(/\D/g, '').slice(0, 6);
+            pastedData.split('').forEach((char, i) => {
+                if (i < otpInputs.length) otpInputs[i].value = char;
+            });
+            if (pastedData.length < 6) otpInputs[pastedData.length].focus();
+            else otpInputs[5].focus();
+        });
+    });
+}
 
-            // Hide previous errors and change button state
-            errorMsg.style.display = 'none';
-            errorMsg.style.opacity = '0';
-            errorMsg.classList.remove('show-error');
-            
-            otpInputs.forEach(i => i.classList.remove('input-error'));
-            verifyBtn.innerText = "VERIFY";
-            verifyBtn.style.pointerEvents = "none";
+const verifyForm = document.getElementById('verify-form');
+if (verifyForm) {
+    verifyForm.addEventListener('submit', function (event) {
+        event.preventDefault();
 
-            fetch('Database/verify.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: codeInput })
-            })
+        const codeInput = Array.from(otpInputs).map(input => input.value).join('');
+        const errorMsg = document.getElementById('verify-error-msg');
+        const verifyBtn = document.getElementById('verify-btn');
+
+        if (codeInput.length < 6) {
+            errorMsg.innerText = "Please enter the full 6-digit code.";
+            errorMsg.style.display = 'block';
+            errorMsg.style.fontSize = '14px';
+            errorMsg.style.opacity = '1';
+            errorMsg.style.visibility = 'visible';
+            errorMsg.classList.add('show-error');
+            return;
+        }
+
+        errorMsg.style.display = 'none';
+        errorMsg.style.opacity = '0';
+        errorMsg.classList.remove('show-error');
+
+        otpInputs.forEach(i => i.classList.remove('input-error'));
+        verifyBtn.innerText = "VERIFY";
+        verifyBtn.style.pointerEvents = "none";
+
+        fetch('Database/verify.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: codeInput })
+        })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     if (data.action === 'signup_success') {
-                        // Show Success Modal
                         const successModal = document.getElementById('signup-success-modal');
                         if (successModal) successModal.showModal();
                     } else if (data.action === 'goto_reset') {
                         window.location.href = "reset-password.html";
                     }
                 } else {
-                    // Show Error Text and turn boxes Red
+
                     verifyBtn.innerText = "TRY AGAIN";
                     verifyBtn.style.pointerEvents = "auto";
                     otpInputs.forEach(i => i.classList.add('input-error'));
-                    
-                    // FORCE THE ERROR MESSAGE TO BE VISIBLE
+
                     errorMsg.style.display = 'block';
                     errorMsg.style.fontSize = '14px';
                     errorMsg.style.opacity = '1';
                     errorMsg.style.visibility = 'visible';
                     errorMsg.classList.add('show-error');
-                    
+
                     if (data.message === 'invalid_code') {
                         errorMsg.innerText = "The code you entered is incorrect.";
                     } else if (data.message === 'session_expired') {
@@ -406,25 +389,22 @@ document.getElementById('terms-modal')?.addEventListener('close', () => {
                 verifyBtn.innerText = "TRY AGAIN";
                 verifyBtn.style.pointerEvents = "auto";
             });
-        });
-    }
+    });
+}
 
-    // ==========================================
-    // RESEND CODE FUNCTION (NO ALERTS)
-    // ==========================================
-    const resendBtn = document.getElementById('resend-code-btn');
-    if (resendBtn) {
-        resendBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            resendBtn.innerText = "Sending...";
-            resendBtn.style.pointerEvents = "none";
+const resendBtn = document.getElementById('resend-code-btn');
+if (resendBtn) {
+    resendBtn.addEventListener('click', function (e) {
+        e.preventDefault();
 
-            fetch('Database/resend-code.php')
+        resendBtn.innerText = "Sending...";
+        resendBtn.style.pointerEvents = "none";
+
+        fetch('Database/resend-code.php')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    startResendTimer(); // Restart the 30s timer!
+                    startResendTimer();
                     resendBtn.innerText = "Resend Code";
                     resendBtn.style.pointerEvents = "auto";
                 } else {
@@ -433,31 +413,28 @@ document.getElementById('terms-modal')?.addEventListener('close', () => {
                 }
             })
             .catch(error => console.error('Error:', error));
-        });
-    }
+    });
+}
 
-    // ==========================================
-    // FORGOT PASSWORD FUNCTION (Send Email)
-    // ==========================================
-    const forgotForm = document.getElementById('forgot-form'); 
-    if (forgotForm && window.location.pathname.includes('forgot-password.html')) {
-        
-        forgotForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-            clearErrors('forgot-form'); // Use your global clear function!
-            
-            const emailInput = document.getElementById('forgot-email');
-            const emailValue = emailInput.value.trim();
-            const submitBtn = forgotForm.querySelector('.auth-btn');
-            
-            submitBtn.innerText = "SENDING...";
-            submitBtn.style.pointerEvents = "none";
+const forgotForm = document.getElementById('forgot-form');
+if (forgotForm && window.location.pathname.includes('forgot-password.html')) {
 
-            fetch('Database/forgot-password.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: emailValue })
-            })
+    forgotForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        clearErrors('forgot-form');
+
+        const emailInput = document.getElementById('forgot-email');
+        const emailValue = emailInput.value.trim();
+        const submitBtn = forgotForm.querySelector('.auth-btn');
+
+        submitBtn.innerText = "SENDING...";
+        submitBtn.style.pointerEvents = "none";
+
+        fetch('Database/forgot-password.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailValue })
+        })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -465,8 +442,7 @@ document.getElementById('terms-modal')?.addEventListener('close', () => {
                 } else {
                     submitBtn.innerText = "SEND CODE";
                     submitBtn.style.pointerEvents = "auto";
-                    
-                    // Use your global showError function!
+
                     if (data.message === 'email_not_found') {
                         showError('forgot-email', "We couldn't find an account with that email.");
                     } else {
@@ -479,51 +455,46 @@ document.getElementById('terms-modal')?.addEventListener('close', () => {
                 submitBtn.innerText = "SEND CODE";
                 submitBtn.style.pointerEvents = "auto";
             });
-        });
-    }
+    });
+}
 
-    // ==========================================
-    // RESET PASSWORD FUNCTION (Update Database)
-    // ==========================================
-    const resetForm = document.getElementById('reset-form'); 
-    if (resetForm && window.location.pathname.includes('reset-password.html')) {
-        
-        resetForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-            clearErrors('reset-form'); // Use your global clear function!
-            
-            const newPasswordInput = document.getElementById('reset-new-password');
-            const confirmPasswordInput = document.getElementById('reset-confirm-password');
-            const submitBtn = resetForm.querySelector('.auth-btn');
+const resetForm = document.getElementById('reset-form');
+if (resetForm && window.location.pathname.includes('reset-password.html')) {
 
-            const newPass = newPasswordInput.value;
-            const confirmPass = confirmPasswordInput.value;
-            let isValid = true;
+    resetForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        clearErrors('reset-form');
 
-            // 1. Password Regex Check (Matches Signup)
-            const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
-            if (!passRegex.test(newPass)) {
-                newPasswordInput.classList.add('input-error');
-                document.getElementById('reset-password-helper').classList.add('text-error');
-                isValid = false;
-            }
+        const newPasswordInput = document.getElementById('reset-new-password');
+        const confirmPasswordInput = document.getElementById('reset-confirm-password');
+        const submitBtn = resetForm.querySelector('.auth-btn');
 
-            // 2. Match Check (Matches Signup)
-            if (newPass !== confirmPass) {
-                showError('reset-confirm-password', 'Passwords do not match.');
-                isValid = false;
-            }
+        const newPass = newPasswordInput.value;
+        const confirmPass = confirmPasswordInput.value;
+        let isValid = true;
 
-            if (!isValid) return;
+        const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+        if (!passRegex.test(newPass)) {
+            newPasswordInput.classList.add('input-error');
+            document.getElementById('reset-password-helper').classList.add('text-error');
+            isValid = false;
+        }
 
-            submitBtn.innerText = "UPDATING...";
-            submitBtn.style.pointerEvents = "none";
+        if (newPass !== confirmPass) {
+            showError('reset-confirm-password', 'Passwords do not match.');
+            isValid = false;
+        }
 
-            fetch('Database/reset-password.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: newPass })
-            })
+        if (!isValid) return;
+
+        submitBtn.innerText = "UPDATING...";
+        submitBtn.style.pointerEvents = "none";
+
+        fetch('Database/reset-password.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: newPass })
+        })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -532,8 +503,7 @@ document.getElementById('terms-modal')?.addEventListener('close', () => {
                 } else {
                     submitBtn.innerText = "RESET PASSWORD";
                     submitBtn.style.pointerEvents = "auto";
-                    
-                    // Use your global showError function!
+
                     if (data.message === 'session_expired') {
                         showError('reset-confirm-password', 'Session expired. Please try again.');
                         setTimeout(() => window.location.href = "forgot-password.html", 2000);
@@ -547,5 +517,5 @@ document.getElementById('terms-modal')?.addEventListener('close', () => {
                 submitBtn.innerText = "RESET PASSWORD";
                 submitBtn.style.pointerEvents = "auto";
             });
-        });
-    }
+    });
+}

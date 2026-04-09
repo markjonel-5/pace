@@ -2,7 +2,6 @@
 header('Content-Type: application/json');
 require 'pace-database.php';
 
-// FIX: Sort strictly by the exact millisecond the order was created!
 $sql = "SELECT * FROM orders ORDER BY created_at DESC";
 $result = $conn->query($sql);
 

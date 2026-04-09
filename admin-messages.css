@@ -134,7 +134,6 @@
     min-height: 0;
 }
 
-/* GINAYA ANG ORANGE HEADER SA SCREENSHOT MO */
 .chat-header {
     padding: 20px;
     background-color: var(--brand-color);
@@ -286,7 +285,6 @@
     height: 10px;
     background-color: var(--brand-color);
     border-radius: 50%;
-    /* Adds a soft, modern glow around the unread dot */
     box-shadow: 0 0 0 4px rgba(199, 110, 54, 0.15); 
 }
 

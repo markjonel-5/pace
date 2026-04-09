@@ -1,14 +1,11 @@
 <?php
-// "use" statements MUST be at the very top!
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 header('Content-Type: application/json');
 
-// Include Database Connection
 require 'pace-database.php';
 
-// Include PHPMailer library files
 require 'PHPMailer/Exception.php';
 require 'PHPMailer/PHPMailer.php';
 require 'PHPMailer/SMTP.php';
@@ -26,29 +23,22 @@ $message = htmlspecialchars($data['message']);
 $mail = new PHPMailer(true);
 
 try {
-    // Server settings
     $mail->isSMTP();
     $mail->Host       = 'smtp.gmail.com';
     $mail->SMTPAuth   = true;
     
-    // Using your existing App Password configuration
     $mail->Username   = 'pace.store.admin@gmail.com'; 
     $mail->Password   = 'uxfnlpgymzqaumvj'; 
     
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port       = 587;
 
-    // Email Details
-    // Gmail forces the "From" email to be the authenticated account (pace.store.admin)
     $mail->setFrom('pace.store.admin@gmail.com', 'PACE Store System'); 
     
-    // We send this contact form TO the admin
     $mail->addAddress('pace.store.admin@gmail.com', 'PACE Admin'); 
     
-    // We add the customer as the "Reply-To" so you can easily reply to their inquiry
     $mail->addReplyTo($senderEmail); 
 
-    // Content
     $mail->isHTML(true);
     $mail->Subject = 'Customer Support Inquiry: ' . $subject;
     $mail->Body    = "

@@ -9,7 +9,7 @@ require 'PHPMailer/Exception.php';
 require 'PHPMailer/PHPMailer.php';
 require 'PHPMailer/SMTP.php';
 
-// Check if it's the Signup Flow OR the Forgot Password Flow
+// check if signup of forgot password
 if (isset($_SESSION['temp_user']) || isset($_SESSION['reset_user'])) {
     
     $new_code = rand(100000, 999999);
@@ -17,7 +17,7 @@ if (isset($_SESSION['temp_user']) || isset($_SESSION['reset_user'])) {
     $fname = '';
     $body = '';
 
-    // SCENARIO 1: Resending for Signup
+    // resending for signup
     if (isset($_SESSION['temp_user'])) {
         $_SESSION['temp_user']['verify_code'] = $new_code;
         $email = $_SESSION['temp_user']['email'];
@@ -28,7 +28,7 @@ if (isset($_SESSION['temp_user']) || isset($_SESSION['reset_user'])) {
                     <h1 style='color: #C06C37; letter-spacing: 5px;'>$new_code</h1>
                   </div>";
     } 
-    // SCENARIO 2: Resending for Password Reset
+    // resending for password reset
     else if (isset($_SESSION['reset_user'])) {
         $_SESSION['reset_user']['verify_code'] = $new_code;
         $email = $_SESSION['reset_user']['email'];
@@ -46,7 +46,6 @@ if (isset($_SESSION['temp_user']) || isset($_SESSION['reset_user'])) {
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
         
-        // --- INSERT YOUR GMAIL AND 16-LETTER PASSWORD HERE ---
         $mail->Username   = 'pace.store.admin@gmail.com'; 
         $mail->Password   = 'uxfnlpgymzqaumvj'; 
         
@@ -57,7 +56,7 @@ if (isset($_SESSION['temp_user']) || isset($_SESSION['reset_user'])) {
         $mail->addAddress($email, $fname);
 
         $mail->isHTML(true);
-        $mail->Subject = 'Your PACE Store Verification Code'; // Keeps the email thread together!
+        $mail->Subject = 'Your PACE Store Verification Code';
         $mail->Body    = $body;
 
         $mail->send();

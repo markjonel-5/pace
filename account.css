@@ -35,7 +35,7 @@
 .account-sidebar-profile p {
     font-size: 13px;
     color: var(--gray-text);
-    word-break: break-all; /* Prevents long emails from breaking the sidebar layout */
+    word-break: break-all;
 }
 
 .account-img-container {

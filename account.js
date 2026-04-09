@@ -25,6 +25,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     };
                     reader.readAsDataURL(file);
                 }
+                this.value = '';
             });
         }
 
@@ -64,7 +65,7 @@ function loadAccountData() {
 
         document.getElementById('acc-fname').value = fName;
         document.getElementById('acc-lname').value = lName;
-        
+
         let savedPhone = window.currentUser.phone || '';
         if (savedPhone.startsWith('+63 9')) savedPhone = savedPhone.substring(5).trim();
         document.getElementById('acc-phone').value = savedPhone;
@@ -199,12 +200,11 @@ function updateSidebarProfile(user) {
     let lName = String(user.last_name || user.lastName || '');
     document.getElementById('sidebar-name').innerText = `${fName} ${lName}`.trim();
     document.getElementById('sidebar-email').innerText = user.email;
-    
+
     const initialsEl = document.getElementById('sidebar-initials');
     const imgEl = document.getElementById('sidebar-img');
     const deleteBtn = document.getElementById('delete-photo-btn');
 
-    // FIX: Check for both camelCase and snake_case database column names!
     let savedPhoto = user.profilePic || user.profile_pic;
 
     if (savedPhoto) {
@@ -270,7 +270,7 @@ window.openDeleteAccountModal = function () {
 
 window.closeDeleteAccountModal = function () {
     const modal = document.getElementById('delete-account-modal');
-    if (modal) modal.close(); 
+    if (modal) modal.close();
 };
 
 window.executeDeleteAccount = function () {
@@ -310,10 +310,12 @@ window.closeDeletePhotoModal = function () {
     }
 };
 
-window.executeDeletePhoto = function() {
+window.executeDeletePhoto = function () {
     if (!window.currentUser) return;
 
     delete window.currentUser.profilePic;
+    delete window.currentUser.profile_pic;
+
     updateSidebarProfile(window.currentUser);
     if (typeof renderUserMenu === 'function') renderUserMenu();
     closeDeletePhotoModal();

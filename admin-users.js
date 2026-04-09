@@ -16,7 +16,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function fetchUsersFromDatabase() {
-    // Added ?nocache parameter to force fresh data load
     fetch('Database/fetch-users.php?nocache=' + new Date().getTime())
         .then(res => res.json())
         .then(data => {
@@ -24,7 +23,7 @@ function fetchUsersFromDatabase() {
                 window.adminUsersData = data.users;
                 renderUsersTable();
             } else {
-                window.location.href = "login.html"; // Boot non-admins
+                window.location.href = "login.html";
             }
         })
         .catch(err => console.error(err));
@@ -86,15 +85,15 @@ function renderUsersTable() {
         let lName = String(u.last_name || u.lastName || '');
         const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
         const fullName = `${fName} ${lName}`.trim();
-        
+
         const roleBadge = u.role === 'admin' ? '<span class="badge-admin">Admin</span>' : '<span class="badge-user">Customer</span>';
 
         let statusClass = 'badge-active';
         if (u.status === 'Blocked') statusClass = 'badge-blocked';
 
         const statusBadge = `<span class="${statusClass}">${u.status}</span>`;
-        let avatarHTML = u.profilePic 
-            ? `<img src="${u.profilePic}" alt="${fullName}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">` 
+        let avatarHTML = u.profilePic
+            ? `<img src="${u.profilePic}" alt="${fullName}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`
             : `<div class="user-avatar">${initials}</div>`;
 
         return `
@@ -129,7 +128,7 @@ function renderUserStats(users) {
     users.forEach(u => {
         if (u.status === 'Active') active++;
         else if (u.status === 'Blocked') blocked++;
-        
+
         if (u.registered_date && u.registered_date !== 'Unknown') {
             const regDate = new Date(u.registered_date);
             if (regDate >= thirtyDaysAgo && regDate <= today) {
@@ -164,15 +163,15 @@ window.viewUserDetails = function (email) {
     let lName = String(u.last_name || u.lastName || '');
     const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
     const fullName = `${fName} ${lName}`.trim();
-    
+
     const roleBadge = u.role === 'admin' ? '<span class="badge-admin">Admin</span>' : '<span class="badge-user">Customer</span>';
     let statusClass = 'badge-active';
     if (u.status === 'Blocked') statusClass = 'badge-blocked';
 
     let regDateStr = u.registered_date || u.registeredDate || u.dateCreated || 'Unknown';
 
-    let profilePicHTML = u.profilePic 
-        ? `<img src="${u.profilePic}" alt="${fullName}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">` 
+    let profilePicHTML = u.profilePic
+        ? `<img src="${u.profilePic}" alt="${fullName}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">`
         : `<div class="up-avatar">${initials}</div>`;
 
     let contentHTML = `
@@ -200,7 +199,7 @@ window.viewUserDetails = function (email) {
             orderHistoryHTML = u.orderHistory.map(o => {
                 let amountVal = o.totalAmount || o.total || o.amount || o.price || 0;
                 let cleanAmount = parseFloat(String(amountVal).replace(/,/g, '')) || 0;
-                let statusColor = o.status === 'Completed' ? '#1b8f50' : (o.status === 'To Ship' ? '#f39c12' : '#3498db'); 
+                let statusColor = o.status === 'Completed' ? '#1b8f50' : (o.status === 'To Ship' ? '#f39c12' : '#3498db');
 
                 return `
                 <div class="up-history-card">

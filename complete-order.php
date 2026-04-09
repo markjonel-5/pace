@@ -1,15 +1,13 @@
 <?php
-// Connect to the database
+
 require 'Database/pace-database.php';
 
 $orderId = "";
 $success = false;
 
-// Check if the ID was passed in the URL
 if (isset($_GET['id'])) {
     $orderId = $conn->real_escape_string($_GET['id']);
     
-    // Update the database instantly!
     $sql = "UPDATE orders SET status = 'Completed' WHERE id = '$orderId'";
     if ($conn->query($sql) === TRUE) {
         $success = true;

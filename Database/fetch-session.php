@@ -3,11 +3,9 @@ session_start();
 header('Content-Type: application/json');
 require 'pace-database.php';
 
-// Initialize secure guest arrays if they are empty
 if (!isset($_SESSION['guest_cart'])) $_SESSION['guest_cart'] = "[]";
 if (!isset($_SESSION['guest_wishlist'])) $_SESSION['guest_wishlist'] = "[]";
 
-// If no user is logged in, return the secure guest arrays!
 if (!isset($_SESSION['user_email'])) {
     echo json_encode([
         'success' => false, 

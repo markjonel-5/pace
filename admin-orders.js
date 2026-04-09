@@ -1,7 +1,6 @@
 window.adminOrdersData = [];
 
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. SECURITY CHECK & DATA LOAD
     fetch('Database/fetch-session.php?nocache=' + new Date().getTime())
         .then(res => res.json())
         .then(data => {
@@ -10,11 +9,11 @@ window.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             window.currentUser = data.user;
-            
+
             let fName = String(window.currentUser.first_name || window.currentUser.firstName || 'Admin');
             let lName = String(window.currentUser.last_name || window.currentUser.lastName || '');
             const initials = (fName.charAt(0) + (lName ? lName.charAt(0) : '')).toUpperCase();
-            
+
             document.getElementById('sidebar-initials').innerText = initials;
             document.getElementById('admin-name-display').innerText = `${fName} ${lName}`.trim();
 
@@ -46,7 +45,7 @@ function fetchOrdersFromDatabase() {
             if (data.success) {
                 window.adminOrdersData = data.orders;
                 renderOrderStats(data.orders);
-                
+
                 const searchVal = document.getElementById('orders-search-input') ? document.getElementById('orders-search-input').value : '';
                 renderTable(data.orders, currentFilterStatus, searchVal);
             }
@@ -90,7 +89,6 @@ window.filterOrders = function (status, element) {
 function renderTable(orders, filterStatus, searchQuery = '') {
     const tableBody = document.getElementById('orders-table-body');
 
-    // FIX: Simply reverse the array! MySQL sends oldest first, so this puts the absolute newest at the top instantly.
     let filteredOrders = [...orders];
 
     if (filterStatus !== 'All') {
@@ -162,9 +160,7 @@ function renderTable(orders, filterStatus, searchQuery = '') {
     }
 }
 
-// ===============================================
 // MODAL & SHIP ORDER LOGIC
-// ===============================================
 let currentOrderIdToShip = null;
 
 window.openShipModal = function (orderId) {
@@ -214,9 +210,7 @@ window.executeShipOrder = function () {
         });
 };
 
-// ===============================================
 // MODAL & ORDER PACKED (PICK UP) LOGIC
-// ===============================================
 let currentOrderIdToReady = null;
 
 window.openReadyModal = function (orderId) {
@@ -266,9 +260,7 @@ window.executeReadyOrder = function () {
         });
 };
 
-// ===============================================
 // VIEW ORDER DETAILS LOGIC
-// ===============================================
 window.viewOrderDetails = function (orderId) {
     let order = window.adminOrdersData.find(o => o.id === orderId);
     if (!order) return;
@@ -351,9 +343,7 @@ window.closeOrderDetailsPanel = function () {
     }, 300);
 };
 
-// ===============================================
 // SUCCESS MODAL & RELOAD LOGIC
-// ===============================================
 window.showSuccessAlert = function (title, message) {
     const modal = document.getElementById('success-alert-modal');
     if (modal) {

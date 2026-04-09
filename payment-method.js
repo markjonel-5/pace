@@ -61,7 +61,6 @@ function loadPaymentData() {
         pmContainer.innerHTML = '';
 
         payments.forEach(pm => {
-            // Only render GCash
             if(pm.type !== 'GCash') return; 
 
             const card = document.createElement('div');
@@ -129,7 +128,7 @@ function handleSavePayment(e) {
     }
 }
 
-/* DELETE PAYMENT MODAL START (Unchanged) */
+/* DELETE PAYMENT MODAL START */
 let paymentIdToDelete = null;
 
 window.openDeletePaymentModal = function(id) {

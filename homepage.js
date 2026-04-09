@@ -156,7 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // Trigger the modal instead of the alert
                     const modal = document.getElementById('email-success-modal');
                     if (modal) modal.showModal();
                     hpContactForm.reset();

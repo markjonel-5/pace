@@ -1,26 +1,18 @@
-// ===============================================
-// 1. GLOBAL VARIABLES
-// ===============================================
 let currentPage = 1;
 const itemsPerPage = 4;
 let currentFilteredProducts = [];
 let currentDeleteId = null;
 let currentStockFilter = 'ALL';
-let tempStockState = {}; 
-window.adminProductsData = []; // LIVE MEMORY CACHE
+let tempStockState = {};
+window.adminProductsData = [];
 
-// SIZE CONFIGURATION DICTIONARY
 const sizeConfig = {
     'MEN': ['M 8', 'M 8.5', 'M 9', 'M 9.5', 'M 10', 'M 10.5', 'M 11', 'M 11.5', 'M 12', 'M 12.5', 'M 13', 'M 13.5'],
     'WOMEN': ['W 5', 'W 5.5', 'W 6', 'W 6.5', 'W 7', 'W 7.5', 'W 8', 'W 8.5', 'W 9', 'W 9.5', 'W 10', 'W 10.5'],
     'KIDS': ['1Y', '1.5Y', '2Y', '2.5Y', '3Y', '3.5Y', '4Y', '4.5Y', '5Y', '5.5Y', '6Y', '6.5Y']
 };
 
-// ===============================================
-// 2. PAGE INITIALIZATION & SECURITY
-// ===============================================
 window.addEventListener('DOMContentLoaded', () => {
-    // SECURITY CHECK & DATA LOAD
     fetch('Database/fetch-session.php?nocache=' + new Date().getTime())
         .then(res => res.json())
         .then(data => {
@@ -47,29 +39,24 @@ window.addEventListener('DOMContentLoaded', () => {
             loadProducts();
         });
 
-    // SEARCH LISTENER
     const searchInput = document.getElementById('products-search-input');
     if (searchInput) {
         const urlParams = new URLSearchParams(window.location.search);
         const searchParam = urlParams.get('search');
         if (searchParam) {
-            searchInput.value = searchParam; 
+            searchInput.value = searchParam;
         }
         searchInput.addEventListener('input', filterProducts);
     }
 
-    // CATEGORY LISTENER FOR DYNAMIC SIZE GRID
     const categoryDropdown = document.getElementById('prod-category');
     if (categoryDropdown) {
-        categoryDropdown.addEventListener('change', function(e) {
+        categoryDropdown.addEventListener('change', function (e) {
             generateSizeGrid(e.target.value);
         });
     }
 });
 
-// ===============================================
-// 3. STATS, DATA LOADING & HELPER FUNCTIONS
-// ===============================================
 function getTotalStock(stockVal) {
     if (typeof stockVal === 'number' || typeof stockVal === 'string') {
         return parseInt(stockVal) || 0;
@@ -82,15 +69,15 @@ function getTotalStock(stockVal) {
 
 function loadProducts() {
     fetch('Database/fetch-products.php?nocache=' + new Date().getTime())
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.adminProductsData = data.products; // Save to live memory!
-            renderProductStats(data.products);
-            filterProducts();
-        }
-    })
-    .catch(error => console.error("Error loading products:", error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.adminProductsData = data.products;
+                renderProductStats(data.products);
+                filterProducts();
+            }
+        })
+        .catch(error => console.error("Error loading products:", error));
 }
 
 function renderProductStats(products) {
@@ -115,10 +102,7 @@ function renderProductStats(products) {
     document.getElementById('stat-inventory-value').innerText = '\u20B1 ' + totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 });
 }
 
-// ===============================================
-// 4. FILTERING, TABLE RENDERING & PAGINATION
-// ===============================================
-window.filterByStock = function(status, element) {
+window.filterByStock = function (status, element) {
     document.querySelectorAll('.order-stat-box').forEach(box => {
         box.classList.remove('active');
     });
@@ -154,22 +138,22 @@ function filterProducts() {
     }
 
     if (searchVal.trim() !== '') {
-        filtered = filtered.filter(p => 
-            p.name.toLowerCase().includes(searchVal) || 
+        filtered = filtered.filter(p =>
+            p.name.toLowerCase().includes(searchVal) ||
             p.id.toLowerCase().includes(searchVal)
         );
     }
 
     currentFilteredProducts = filtered;
-    currentPage = 1; 
-    
+    currentPage = 1;
+
     renderProductsTable();
 }
 
 function renderProductsTable() {
     const tableBody = document.getElementById('products-table-body');
     const paginationContainer = document.getElementById('pagination-container');
-    
+
     if (currentFilteredProducts.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--gray-text);">No products found.</td></tr>`;
         if (paginationContainer) paginationContainer.innerHTML = '';
@@ -182,7 +166,7 @@ function renderProductsTable() {
 
     tableBody.innerHTML = paginatedItems.map(p => {
         let stock = getTotalStock(p.stock);
-        
+
         let statusClass = 'status-active';
         let statusText = 'Active';
         if (stock === 0) {
@@ -222,7 +206,7 @@ function renderProductsTable() {
 
 function renderPagination() {
     const container = document.getElementById('pagination-container');
-    if(!container) return;
+    if (!container) return;
 
     const totalPages = Math.ceil(currentFilteredProducts.length / itemsPerPage);
 
@@ -232,26 +216,23 @@ function renderPagination() {
     }
 
     let html = '';
-    for(let i = 1; i <= totalPages; i++) {
+    for (let i = 1; i <= totalPages; i++) {
         html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
     }
     container.innerHTML = html;
 }
 
-window.goToPage = function(page) {
+window.goToPage = function (page) {
     currentPage = page;
     renderProductsTable();
 };
 
-// ===============================================
-// 5. ADD & EDIT PRODUCT MODAL LOGIC
-// ===============================================
-let shoeImage = []; 
+let shoeImage = [];
 
 function generateSizeGrid(category, existingStock = null) {
     const container = document.getElementById('size-stock-container');
     const sizes = sizeConfig[category] || [];
-    
+
     if (existingStock && typeof existingStock === 'object') {
         tempStockState = { ...tempStockState, ...existingStock };
     }
@@ -276,22 +257,22 @@ function generateSizeGrid(category, existingStock = null) {
     });
 }
 
-window.openProductModal = function(productId = null) {
+window.openProductModal = function (productId = null) {
     const modal = document.getElementById('product-modal');
     const title = document.getElementById('modal-title');
     const form = document.getElementById('product-form');
     const nav = document.querySelector('.admin-navbar-section');
 
-    form.reset(); 
-    shoeImage = []; 
-    tempStockState = {}; 
+    form.reset();
+    shoeImage = [];
+    tempStockState = {};
     document.getElementById('admin-media-error').style.display = 'none';
-    renderAdminPhotoPreviews(); 
+    renderAdminPhotoPreviews();
 
     if (productId) {
         title.innerText = "Edit Product";
         let p = window.adminProductsData.find(item => item.id === productId);
-        
+
         if (p) {
             document.getElementById('prod-original-id').value = p.id;
             document.getElementById('prod-name').value = p.name;
@@ -299,76 +280,76 @@ window.openProductModal = function(productId = null) {
             document.getElementById('prod-color').value = p.color;
             document.getElementById('prod-price').value = parseFloat(p.price.replace(/,/g, ''));
             document.getElementById('prod-isNew').checked = p.isNew;
-            
+
             let savedStock = typeof p.stock === 'object' ? p.stock : {};
             generateSizeGrid(p.type, savedStock);
-            
+
             if (p.img) shoeImage.push(p.img);
             if (p.hover) shoeImage.push(p.hover);
             renderAdminPhotoPreviews();
         }
     } else {
         title.innerText = "Add New Product";
-        document.getElementById('prod-original-id').value = ""; 
-        document.getElementById('prod-category').value = "MEN"; 
-        generateSizeGrid('MEN'); 
+        document.getElementById('prod-original-id').value = "";
+        document.getElementById('prod-category').value = "MEN";
+        generateSizeGrid('MEN');
     }
 
     if (modal) {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
         document.body.style.overflow = 'hidden';
         document.body.style.paddingRight = `${scrollbarWidth}px`;
-        if (nav) nav.style.paddingRight = `calc(40px + ${scrollbarWidth}px)`; 
+        if (nav) nav.style.paddingRight = `calc(40px + ${scrollbarWidth}px)`;
         modal.showModal();
     }
 };
 
-window.closeProductModal = function() {
+window.closeProductModal = function () {
     const modal = document.getElementById('product-modal');
     const nav = document.querySelector('.admin-navbar-section');
     if (modal) {
         modal.close();
         document.body.style.overflow = '';
-        document.body.style.paddingRight = ''; 
-        if (nav) nav.style.paddingRight = ''; 
+        document.body.style.paddingRight = '';
+        if (nav) nav.style.paddingRight = '';
     }
 };
 
-document.getElementById('admin-upload-photos')?.addEventListener('change', function(e) {
+document.getElementById('admin-upload-photos')?.addEventListener('change', function (e) {
     const files = Array.from(e.target.files);
     const errorMsg = document.getElementById('admin-media-error');
-    
+
     if (shoeImage.length + files.length > 2) {
         errorMsg.innerText = "Maximum of 2 photos allowed.";
         errorMsg.style.display = 'block';
-        this.value = ''; 
+        this.value = '';
         return;
     }
-    
+
     files.forEach(file => {
-        if (file.size > 2 * 1024 * 1024) { 
+        if (file.size > 2 * 1024 * 1024) {
             errorMsg.innerText = "A photo is too large (Max 2MB).";
             errorMsg.style.display = 'block';
             return;
         }
-        
+
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = function (event) {
             shoeImage.push(event.target.result);
             renderAdminPhotoPreviews();
             errorMsg.style.display = 'none';
         };
         reader.readAsDataURL(file);
     });
-    
-    this.value = ''; 
+
+    this.value = '';
 });
 
 function renderAdminPhotoPreviews() {
     const container = document.getElementById('admin-media-preview-container');
     const uploadBox = document.getElementById('admin-upload-box');
     let html = '';
-    
+
     shoeImage.forEach((src, index) => {
         let tagText = index === 0 ? "Primary" : "Hover";
         html += `
@@ -381,7 +362,7 @@ function renderAdminPhotoPreviews() {
             </div>
         `;
     });
-    
+
     container.innerHTML = html;
 
     if (shoeImage.length >= 2) {
@@ -391,19 +372,19 @@ function renderAdminPhotoPreviews() {
     }
 }
 
-window.removeAdminPhoto = function(index) {
+window.removeAdminPhoto = function (index) {
     shoeImage.splice(index, 1);
     renderAdminPhotoPreviews();
 };
 
-window.saveProduct = function(event) {
-    event.preventDefault(); 
-    
+window.saveProduct = function (event) {
+    event.preventDefault();
+
     const errorMsg = document.getElementById('admin-media-error');
     if (shoeImage.length !== 2) {
         errorMsg.innerText = "You must upload exactly 2 photos (Primary and Hover).";
         errorMsg.style.display = 'block';
-        return; 
+        return;
     }
 
     const submitBtn = event.target.querySelector('.account-save-btn');
@@ -416,7 +397,7 @@ window.saveProduct = function(event) {
     });
 
     let rawPrice = parseFloat(document.getElementById('prod-price').value);
-    
+
     let productData = {
         id: document.getElementById('prod-original-id').value,
         name: document.getElementById('prod-name').value.trim(),
@@ -434,38 +415,35 @@ window.saveProduct = function(event) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productData)
     })
-    .then(response => response.json())
-    .then(data => {
-        submitBtn.innerText = "Save Product";
-        submitBtn.style.pointerEvents = "auto";
-        if (data.success) {
-            closeProductModal();
-            loadProducts(); 
-        } else {
-            alert("Error saving: " + data.message);
-        }
-    })
-    .catch(error => {
-        submitBtn.innerText = "Save Product";
-        submitBtn.style.pointerEvents = "auto";
-        console.error('Error:', error);
-        alert("A server error occurred. Please try again.");
-    });
+        .then(response => response.json())
+        .then(data => {
+            submitBtn.innerText = "Save Product";
+            submitBtn.style.pointerEvents = "auto";
+            if (data.success) {
+                closeProductModal();
+                loadProducts();
+            } else {
+                alert("Error saving: " + data.message);
+            }
+        })
+        .catch(error => {
+            submitBtn.innerText = "Save Product";
+            submitBtn.style.pointerEvents = "auto";
+            console.error('Error:', error);
+            alert("A server error occurred. Please try again.");
+        });
 };
 
-// ===============================================
-// 6. DELETE PRODUCT MODAL LOGIC
-// ===============================================
-window.openDeleteModal = function(productId) {
+window.openDeleteModal = function (productId) {
     let p = window.adminProductsData.find(item => String(item.id) === String(productId));
-    
+
     const nav = document.querySelector('.admin-navbar-section');
     const modal = document.getElementById('delete-modal');
-    
+
     if (p && modal) {
-        currentDeleteId = String(productId); 
+        currentDeleteId = String(productId);
         document.getElementById('delete-prod-name').innerText = p.name;
-        
+
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
         document.body.style.overflow = 'hidden';
         document.body.style.paddingRight = `${scrollbarWidth}px`;
@@ -475,20 +453,20 @@ window.openDeleteModal = function(productId) {
     }
 };
 
-window.closeDeleteModal = function() {
+window.closeDeleteModal = function () {
     currentDeleteId = null;
     const modal = document.getElementById('delete-modal');
     const nav = document.querySelector('.admin-navbar-section');
-    
+
     if (modal) {
         modal.close();
         document.body.style.overflow = '';
-        document.body.style.paddingRight = ''; 
-        if (nav) nav.style.paddingRight = ''; 
+        document.body.style.paddingRight = '';
+        if (nav) nav.style.paddingRight = '';
     }
 };
 
-window.executeDelete = function() {
+window.executeDelete = function () {
     if (!currentDeleteId) return;
 
     fetch('Database/delete-product.php', {
@@ -496,13 +474,12 @@ window.executeDelete = function() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: currentDeleteId })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // FIX: Removed the massive localStorage loop! global.js already auto-purges dead products from carts.
-            closeDeleteModal();
-            loadProducts(); // Refresh the table
-        }
-    })
-    .catch(error => console.error('Error:', error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeDeleteModal();
+                loadProducts();
+            }
+        })
+        .catch(error => console.error('Error:', error));
 };

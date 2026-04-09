@@ -1,6 +1,5 @@
 /* NOTIFICATION INITIALIZATION */
 window.addEventListener('DOMContentLoaded', () => {
-    // Tiny delay so global.js has time to populate window.currentUser
     setTimeout(() => {
         if (window.currentUser && document.getElementById('notification-list')) {
             renderNotification(window.currentUser);
@@ -81,7 +80,6 @@ window.handleGroupClick = function (orderId) {
     });
 
     if (hasChanges) {
-        // --- SYNC STATUS DIRECTLY TO MYSQL ---
         if (window.syncNotificationsToDatabase) {
             window.syncNotificationsToDatabase(window.currentUser.email, window.currentUser.notifications);
         }
@@ -100,7 +98,6 @@ window.markAllAsRead = function () {
 
     window.currentUser.notifications.forEach(n => n.read = true);
 
-    // --- SYNC STATUS DIRECTLY TO MYSQL ---
     if (window.syncNotificationsToDatabase) {
         window.syncNotificationsToDatabase(window.currentUser.email, window.currentUser.notifications);
     }
