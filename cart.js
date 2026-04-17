@@ -53,6 +53,14 @@ function renderCartPage() {
 
         let currentProducts = JSON.parse(localStorage.getItem('pace_products')) || products;
         let colorOptionsHTML = currentProducts.filter(p => p.name === item.name && p.type === item.type).map(v => {
+            let sizeStock = 0;
+            if (typeof v.stock === 'object') {
+                sizeStock = v.stock[item.size] || 0;
+            }
+            let isUnavailable = sizeStock === 0 && item.color !== v.color;
+            if (isUnavailable) {
+                return `<option style="color: #ccc;" value="${v.color}" disabled>${v.color}</option>`;
+            }
             return `<option value="${v.color}" ${item.color === v.color ? 'selected' : ''}>${v.color}</option>`;
         }).join('');
 
@@ -172,6 +180,13 @@ function updateCartItemColor(index, newColor) {
     let currentProducts = JSON.parse(localStorage.getItem('pace_products')) || products;
     let newVariant = currentProducts.find(p => p.name === item.name && p.type === item.type && p.color === newColor);
     if (!newVariant) return;
+
+    let sizeStock = 0;
+    if (typeof newVariant.stock === 'object') {
+        sizeStock = newVariant.stock[item.size] || 0;
+    }
+
+    if (sizeStock === 0) return;
 
     let newCartItemId = newVariant.id + "-" + item.size + "-" + newColor;
     let existingItemIndex = cart.findIndex((cartItem, i) => cartItem.cartItemId === newCartItemId && i !== index);

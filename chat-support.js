@@ -1,7 +1,7 @@
 /* CHAT-SUPPORT PAGE FUNCTION START */
 function renderPageChat() {
     const transcriptBox = document.getElementById('page-transcript-box');
-    if (!transcriptBox || !window.currentUser || !window.currentUser.chatHistory) return; 
+    if (!transcriptBox || !window.currentUser || !window.currentUser.chatHistory) return;
 
     let html = '';
     window.currentUser.chatHistory.forEach((msg, index) => {
@@ -23,9 +23,9 @@ function renderPageChat() {
             html += `<div style="font-size: 11px; color: var(--gray-text); text-align: right; width: 100%; padding-right: 5px; margin-top: -10px; margin-bottom: 10px;">Seen</div>`;
         }
     });
-    
+
     transcriptBox.innerHTML = html;
-    transcriptBox.scrollTop = transcriptBox.scrollHeight; 
+    transcriptBox.scrollTop = transcriptBox.scrollHeight;
 }
 
 function sendPageMessage() {
@@ -34,7 +34,7 @@ function sendPageMessage() {
     if (text === '') return;
 
     if (typeof saveChatToDatabase === 'function') saveChatToDatabase('user', text);
-    
+
     input.value = '';
     renderPageChat();
     if (typeof loadChatHistory === 'function') loadChatHistory();
@@ -74,18 +74,20 @@ function closeDeleteChatModal() {
 function executeClearChat() {
     if (!window.currentUser) return;
 
-    window.currentUser.chatHistory = [];
-    
+    closeDeleteChatModal();
+
+    const now = new Date();
+    const welcomeMsg = {
+        sender: 'bot',
+        text: 'Hi there! Need help finding your perfect pair of shoes?',
+        time: now.toLocaleDateString('en-US') + ' at ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        read: false
+    };
+
+    window.currentUser.chatHistory = [welcomeMsg];
+    renderPageChat();
+
     if (window.syncChatToDatabase) {
         window.syncChatToDatabase(window.currentUser.email, window.currentUser.chatHistory);
     }
-
-    if (typeof saveChatToDatabase === 'function') {
-        saveChatToDatabase('bot', 'Hi there! Need help finding your perfect pair of shoes? 👟');
-    }
-
-    renderPageChat();
-
-    if (typeof loadChatHistory === 'function') loadChatHistory();
-    closeDeleteChatModal();
 }

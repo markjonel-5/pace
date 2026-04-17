@@ -37,7 +37,7 @@ function fetchDashboardData() {
             let users = data.data.users;
             let products = data.data.products;
 
-            let orders = [...data.data.orders].reverse();
+            let orders = [...data.data.orders];
 
             window.dashboardData = { users, products, orders };
 
@@ -129,11 +129,25 @@ function fetchDashboardData() {
             if (document.getElementById('trend-users')) document.getElementById('trend-users').innerHTML = getTrendHTML(thisMonthUsers, lastMonthUsers);
             if (document.getElementById('trend-products')) document.getElementById('trend-products').innerHTML = getTrendHTML(thisMonthProducts, lastMonthProducts);
 
-            if (document.getElementById('mb-list')) {
-                document.getElementById('mb-list').innerHTML = monthlySales.map((total, index) => `
-                <li><span>${fullMonthNames[index]}</span> <strong>\u20B1 ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></li>
-            `).join('');
-            }
+            document.getElementById('mb-list').innerHTML = monthlySales.map((total, index) => {
+                const prev = index > 0 ? monthlySales[index - 1] : 0;
+
+                let trendHTML = '';
+                if (prev === 0 && total === 0) {
+                    trendHTML = `<span class="mb-trend mb-trend-neutral">0%</span>`;
+                } else if (prev === 0 && total > 0) {
+                    trendHTML = `<span class="mb-trend mb-trend-positive">+100%</span>`;
+                } else if (total === 0) {
+                    trendHTML = `<span class="mb-trend mb-trend-neutral">0%</span>`;
+                } else {
+                    const pct = Math.round(((total - prev) / prev) * 100);
+                    if (pct > 0) trendHTML = `<span class="mb-trend mb-trend-positive">+${pct}%</span>`;
+                    else if (pct < 0) trendHTML = `<span class="mb-trend mb-trend-negative">${pct}%</span>`;
+                    else trendHTML = `<span class="mb-trend mb-trend-neutral">0%</span>`;
+                }
+
+                return `<li><span>${fullMonthNames[index]}</span><div class="mb-right">${trendHTML}<strong>₱ ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></div></li>`;
+            }).join('');
 
             const msrChart = document.getElementById('msr-chart');
             if (msrChart) {

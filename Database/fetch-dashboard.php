@@ -25,7 +25,7 @@ if ($resProducts && $resProducts->num_rows > 0) {
 }
 
 // fetch orders
-$resOrders = $conn->query("SELECT * FROM orders ORDER BY order_date DESC");
+$resOrders = $conn->query("SELECT * FROM orders ORDER BY created_at DESC");
 if ($resOrders && $resOrders->num_rows > 0) {
     while($row = $resOrders->fetch_assoc()) {
         $row['customerEmail'] = $row['customer_email'];

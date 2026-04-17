@@ -862,8 +862,8 @@ function loadChatHistory() {
             }
         });
     } else {
-        appendMessageUI('bot-msg', 'Hi there! Need help finding your perfect pair of shoes? 👟');
-        if (window.currentUser) saveChatToDatabase('bot', 'Hi there! Need help finding your perfect pair of shoes? 👟');
+        appendMessageUI('bot-msg', 'Hi there! Need help finding your perfect pair of shoes?');
+        if (window.currentUser) saveChatToDatabase('bot', 'Hi there! Need help finding your perfect pair of shoes?');
     }
 }
 // GLOBAL FLOATING CHAT WIDGET FUNCTION END 

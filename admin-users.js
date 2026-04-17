@@ -32,6 +32,12 @@ function fetchUsersFromDatabase() {
 function renderUsersTable() {
     let users = [...window.adminUsersData];
 
+    users.sort((a, b) => {
+        const dateA = new Date(a.created_at || a.registered_date || 0);
+        const dateB = new Date(b.created_at || b.registered_date || 0);
+        return dateB - dateA;
+    });
+
     users = users.map(u => {
         if (!u.status) u.status = 'Active';
         return u;

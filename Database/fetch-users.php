@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
-$sql = "SELECT * FROM users ORDER BY id DESC";
+$sql = "SELECT * FROM users ORDER BY created_at DESC";
 $result = $conn->query($sql);
 $users = [];
 
